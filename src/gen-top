@@ -1,0 +1,107 @@
+#!/bin/bash
+
+if [ "$1" == "" ]; then topdir="."; else topdir="$(realpath "$1")"; fi
+toplev="$(realpath "$2" | sed -e 's~'"$topdir"'~~;s~^/~~')"
+if [ "$3" == "" ]; then extern="/dev/null"; else extern="$(realpath "$3" | sed -e 's~'"$topdir"'~~;s~^/~~')"; fi
+
+# sit in top level of binary blob
+cd "$topdir"
+
+source project-common
+
+ignorelist="$(cat .ignore 2>/dev/null | sed -e 's~^\./~~')"
+
+publicfuncs="$(find . -type f -not -name 'type.h' -exec grep -l 'public' {} \; | sed -e 's~\./~~' | grep -vxF "$ignorelist")" # keyword may change
+
+function convtoextern {
+	
+	sed -e \
+			'\~static inline~{
+				s~.*~#ifdef __cplusplus~
+				a\
+extern "C"
+				a\
+#endif /* __cplusplus */
+			}'
+	
+}
+
+for func in $publicfuncs; do
+	
+	funcdir="$(sed -e 's~[^/]*$~~' <<< $func)"
+	cd "$funcdir"
+	source project-common
+	prefix="$(get-prefix)"
+	cd - >/dev/null 2>&1
+	funcprefix="$(sed -e 's~_.*~~' <<< $prefix | downcase)$(sed -e 's~^[^_]*~~' <<< $prefix)"
+	funcdecl="$(
+			sed -n -e \
+					'\~static inline~{
+						:again;
+						N;
+						\~#ifndef~b continue;
+						b again;
+						:continue;
+						s~) {\n#ifndef.*$~)~p;
+					}' \
+					"$func"
+	)"
+	funcname="$(
+			sed -n -e \
+					's~.*\('"$funcprefix"'_[A-Za-z0-9_]*\).*~\1~p' <<< \
+					"$funcdecl"
+	)"
+	argnames="$(
+			sed -n -e \
+					'\~#ifndef NDEBUG~{
+						N;
+						\~fprintf~{
+							:again;
+							N;
+							\~#endif~b continue;
+							b again;
+							:continue;
+							s~.*'"$funcname"' (.*);\\n", \(.*\));\n.*~\1~p
+						}
+					}' \
+					"$func"
+	)"
+	echo '#define '"$funcname"' '"$funcname"'_Int' >> funcdefs
+	echo "$funcdecl"';' >> funcdeclrs
+	echo '#undef '"$funcname" >> funcundefs
+	echo -n \
+"$funcdecl"' {
+	
+	return '"$funcname"'_Int ('"$argnames"');
+	
+}
+' | convtoextern >> funcpassthrs
+	
+done
+
+echo -n \
+"$(find . -type f -name 'type.h' | sed -e 's~^\./~~' | grep -vxF "$ignorelist" | sed -e 's~\(.*\)~#include "\1"~')
+
+$(find . -type f -name 'struct.h' | sed -e 's~^\./~~' | grep -vxF "$ignorelist" | sed -e 's~\(.*\)~#include "\1"~')
+
+$(cat funcdefs 2>/dev/null)
+
+$(cat funcdeclrs 2>/dev/null)
+
+$(find . -type f -not -name 'type.h' -and -not -name 'struct.h' -and -regex '.*\.h' | sed -e 's~^\./~~' | grep -vxF "$ignorelist" | sed -e 's~\(.*\)~#include "\1"~')
+
+$(cat funcundefs 2>/dev/null)
+
+$(cat funcpassthrs 2>/dev/null)
+" > "$toplev"
+
+echo -n \
+"$(grep typedef "$(find . -type f -name 'type.h' -exec grep -l 'public' {} \; | sed -e 's~^\./~~' | grep -vxF "$ignorelist")" 2>/dev/null)
+
+$(cat funcdeclrs 2>/dev/null | convtoextern)
+" > "$extern"
+
+rm -f funcdefs
+rm -f funcdeclrs
+rm -f funcundefs
+rm -f funcpassthrs

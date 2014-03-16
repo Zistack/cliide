@@ -1,0 +1,6 @@
+notes/
+build/*
+!build/Makefile
+bin/*
+lib/*
+inc/*

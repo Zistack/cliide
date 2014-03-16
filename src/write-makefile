@@ -1,0 +1,201 @@
+#!/bin/bash
+
+source project-common
+
+type=
+
+while getopts leh opt; do
+	
+	case $opt in
+		
+		l)
+			type='lib'
+			;;
+		
+		e)
+			type='exe'
+			;;
+		
+		h)
+			type='hlib'
+			;;
+		
+		*)
+			echo 'Unrecognized option: '"$opt"
+			exit 1
+			;;
+		
+	esac
+	
+done
+
+shift $[ $OPTIND - 1 ]
+
+upcasename="$(upcase <<< $1)"
+downcasename="$(downcase <<< $1)"
+
+basemod="$(sed -e 's~/.*~~' <<< $moddir)"
+
+targetprefix="$(sed -e 's~/~~g' <<< $moddir | downcase)"
+upcasetargetprefix="$(upcase <<< $targetprefix)"
+
+localpvar="$targetprefix"'path'
+localfvar="$targetprefix"'files'
+localccvar="$upcasetargetprefix"'CCFLAGS'
+localclvar="$upcasetargetprefix"'CLFLAGS'
+localmfvar="$targetprefix"'mf'
+
+libfile="$(sed -e 's~/~~;s~^~lib~;s~$~.so~' <<< $moddir)"
+exefile="$(sed -e 's~/~-~' <<< $moddir)"
+dirmoddir="$(sed -e 's~[^/]*$~~' <<< $moddir)"
+
+function a {
+	
+	echo "$1" >> .makefile
+	
+}
+
+function e {
+	
+	if [ "$type" = 'exe' ]; then
+		echo "$1" >> .makefile
+	fi
+	
+}
+
+function l {
+	
+	if [ "$type" = 'lib' ]; then
+		echo "$1" >> .makefile
+	fi
+	
+}
+
+function h {
+	
+	if [ "$type" = 'hlib' ]; then
+		echo "$1" >> .makefile
+	fi
+	
+}
+
+function el {
+	
+	if [ "$type" = 'exe' ] || [ "$type" = 'lib' ]; then
+		echo "$1" >> .makefile
+	fi
+	
+}
+
+function lh {
+	
+	if [ "$type" = 'lib' ] || [ "$type" = 'hlib' ]; then
+		echo "$1" >> .makefile
+	fi
+	
+}
+
+function he {
+	
+	if [ "$type" = 'hlib' ] || [ "$type" = 'exe' ]; then
+		echo "$1" >> .makefile
+	fi
+	
+}
+
+function rrme {
+	
+	echo -n 'find "'"$1"'" -type d 2>/dev/null | xargs rmdir -p 2>/dev/null'
+	
+}
+
+echo -n '' > .makefile
+
+a	'CC = clang'
+a	''
+a	"$localpvar"' = $(srcdir)/'"$moddir"
+a	"$localfvar"' = $(shell find $('"$localpvar"') -type f -regex .*\\.h)'
+he	"$localccvar"' = -std=c11 -I $('"$localpvar"')'
+l	"$localccvar"' = -std=c11 -I $('"$localpvar"') -fPIC'
+e	"$localclvar"' ='
+l	"$localclvar"' = -shared'
+e	"$localmfvar"' = $(shell find . -type f -path ./'"$moddir"'/main.mk)'
+l	"$localmfvar"' = $(shell find . -type f -path ./'"$moddir"'/'"$downcasename"'.mk)'
+a	''
+a	'.PHONY : '"$targetprefix"
+e	"$targetprefix"' : $(bindir)/'"$exefile"
+l	"$targetprefix"' : $(libdir)/'"$libfile"' $(incdir)/'"$moddir"'.h $(incdir)/'"$moddir"'/external.h'
+h	"$targetprefix"' : $('"$localfvar"':$(srcdir)/%=$(incdir)/%) $(incdir)/'"$moddir"'.h $(incdir)/'"$moddir"'/internal.h'
+a	''
+a	'.PHONY : '"$targetprefix"'configure'
+e	"$targetprefix"'configure : '"$moddir"'/main.mk'
+l	"$targetprefix"'configure : '"$moddir"'/'"$downcasename"'.mk'
+h	"$targetprefix"'configure :'
+a	''
+a	'.PHONY : '"$targetprefix"'clean'
+a	"$targetprefix"'clean :'
+e	'	rm -rf '"$moddir"
+e	'	rm -f $(bindir)/'"$exefile"
+l	'	rm -rf '"$moddir"
+l	'	rm -f $(libdir)/'"$libfile"
+el	'	-'"$(rrme "$basemod")"
+lh	'	rm -f $(incdir)/'"$moddir"'.h'
+lh	'	rm -fr $(incdir)/'"$moddir"
+lh	'	-'"$(rrme '$(incdir)/'"$basemod")"
+a	''
+a	'.PHONY : '"$targetprefix"'clobber'
+a	"$targetprefix"'clobber : '"$targetprefix"'clean'
+a	'	rm -f $('"$localpvar"')/internal.h'
+l	'	rm -f $('"$localpvar"')/external.h'
+a	''
+a	'.PHONY : '"$targetprefix"'install'
+e	"$targetprefix"'install : /usr/bin/'"$exefile"
+l	"$targetprefix"'install : /usr/lib/'"$libfile"' /usr/inc/'"$moddir"'.h /usr/inc/external.h'
+h	"$targetprefix"'install : $('"$localfvar"':%=/usr/inc/%) /usr/inc/'"$moddir"'.h'
+a	''
+a	'.PHONY : '"$targetprefix"'uninstall'
+a	"$targetprefix"'uninstall :'
+e	'	rm -f /usr/bin/'"$exefile"
+l	'	rm -f /usr/lib/'"$libfile"
+lh	'	rm -fr /usr/inc/'"$moddir"'.h /usr/inc/'"$moddir"
+lh	'	-'"$(rrme '/usr/inc/'"$basemod")"
+el	''
+e	'$(bindir)/'"$exefile"' : '"$moddir"'/main.o'
+l	'$(libdir)/'"$libfile"' : '"$moddir"'/'"$downcasename"'.o'
+el	'	$(CC) $(CCFLAGS) $(CLFLAGS) $('"$localccvar"') $('"$localclvar"') -o $@ $<'
+lh	''
+l	'$(incdir)/'"$moddir"'.h : $(srcdir)/'"$moddir"'.h $(srcdir)/'"$moddir"'/external.h'
+h	'$(incdir)/'"$moddir"'.h : $(srcdir)/'"$moddir"'.h $(srcdir)/'"$moddir"'/internal.h'
+lh	'	$(CC) $(CCFLAGS) $('"$localccvar"') -fsyntax-only $<'
+lh	'	mkdir -p $(dir $@)'
+lh	'	cp $< $@'
+lh	''
+lh	'$(incdir)/%.h : $(srcdir)/%.h $(incdir)/'"$moddir"'.h'
+lh	'	mkdir -p $(dir $@)'
+lh	'	cp $< $@'
+el	''
+e	'.DELETE_ON_ERROR : '"$moddir"'/main.mk'
+l	'.DELETE_ON_ERROR : '"$moddir"'/'"$downcasename"'.mk'
+e	"$moddir"'/main.mk : $('"$localpvar"')/main.c $('"$localpvar"')/internal.h $('"$localfvar"') '"$moddir"'/'
+l	"$moddir"'/'"$downcasename"'.mk : $('"$localpvar"')/'"$downcasename"'.c $('"$localpvar"')/internal.h '"$moddir"'/'
+e	'	$(CC) $(CCFLAGS) $('"$localccvar"') -M -MT '"$moddir"'/main.o $< > $@'
+l	'	$(CC) $(CCFLAGS) $('"$localccvar"') -M -MT '"$moddir"'/'"$downcasename"'.o $< > $@'
+el	'	echo '"'"'	$$(CC) $$(CCFLAGS) $$('"$localccvar"') -c -o $$@ $$<'"'"' >> $@'
+el	''
+e	'/usr/bin/'"$exefile"' : $(bindir)/'"$exefile"
+l	'/usr/lib/'"$libfile"' : $(libdir)/'"$libfile"
+el	'	cp $< $@'
+lh	''
+lh	'/usr/inc/%.h : $(incdir)/%.h'
+lh	'	mkdir -p $(dir $@)'
+lh	'	cp $< $@'
+el	''
+el	'include $('"$localmfvar"')'
+a	''
+l	'$('"$localpvar"')/internal.h $('"$localpvar"')/external.h : $(filter-out %internal.h %external.h,$('"$localfvar"'))'
+he	'$('"$localpvar"')/internal.h : $(filter-out %internal.h,$('"$localfvar"'))'
+l	'	gen-top $('"$localpvar"') $('"$localpvar"')/internal.h $('"$localpvar"')/external.h'
+he	'	gen-top $('"$localpvar"') $@'
+el	''
+el	"$moddir"'/ :'
+el	'	mkdir -p $@'

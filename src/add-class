@@ -1,0 +1,51 @@
+#!/bin/bash
+
+source project-common
+
+while getopts h opt; do
+	
+	case $opt in
+		
+		h)
+			echo 'Usage: '"$0"' <class name>'
+			echo 'Must be in project source tree'
+			echo 'Must be in module'
+			exit 0
+			;;
+		
+		*)
+			echo 'Unrecognized option: '"$opt"
+			exit 1
+			;;
+		
+	esac
+	
+done
+
+shift $[ $OPTIND - 1 ]
+
+src-check
+
+mod-check
+
+downcasename=`downcase <<< $1`
+
+add-module $1
+
+cd $downcasename
+source project-common
+
+typename=`get-prefix`
+
+echo -n \
+'struct '"$typename"' {
+	/* member */
+};
+' > struct.h
+
+echo -n \
+'typedef struct '"$typename"' '"$typename"';
+' > type.h
+
+add-function Create
+add-function Destroy

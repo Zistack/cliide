@@ -1,0 +1,7 @@
+From project toplevel
+
+cd build
+echo [Put desired install directory here] > insdir
+make install
+
+The scripts will be copied into the appropriate location.
