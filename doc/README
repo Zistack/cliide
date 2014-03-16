@@ -1,7 +1,7 @@
 # CLICBS: Command Line Interface C Build System #
 
 This system consists of a set of scripts that effectively create a CLI IDE
-environment for C/CPP projects.  It has a number of useful features, not the
+environment for C/C++ projects.  It has a number of useful features, not the
 least of which is generating the makefile system for you, so that building the
 project is as easy as `make configure && make` in the build directory.
 
@@ -215,18 +215,31 @@ they were installed on your system.
 
 ## Moving a Project ##
 
-if you simply do an mv on a project, it will still work, but references to the
-project will break, and the bashrc file in the project root will not function
-properly.  This is easy to fix.  Just use the new-project script as if you were
-creating the project again, but create it over top of the existing one.  It
-will overwrite the bashrc file to be correct.  It will also update the
+if you simply do an `mv` on a project, it will still work, but references to
+the project will break, and the bashrc file in the project root will not
+function properly.  This is easy to fix.  Just use the new-project script as if
+you were creating the project again, but create it over top of the existing
+one.  It will overwrite the bashrc file to be correct.  It will also update the
 Makefile, which may be a concern.
 
 ## Removing a File, Module, Class, Etc... ##
 
-One of the major design considerations in this system was the ability to use rm
-on anything created by the scripts, and not have it break anything.  If you
-create something and later want to remove it, then you can absolutely use rm.
+One of the major design considerations in this system was the ability to use
+`rm` on anything created by the scripts, and not have it break anything.  If you
+create something and later want to remove it, then you can absolutely use `rm`.
+
+## Exposing a Library Function or Type ##
+
+As you may have noticed from the 'Adding a Function' above, all functions are
+static inline by default.  In fact, all functions are static inline - period.
+To expose a function in a shared library so that another piece of code can use
+it, all you have to do is put the following line in the header file:
+
+	/* PUBLIC */
+
+It doesn't matter much where it is.  Similarly, to use a function that uses one
+of the library's types in the prototype, you will need to make that type
+public.  This is done the same way.
 
 ## Adding a Project Reference ##
 
