@@ -12,6 +12,7 @@ source project-common
 ignorelist="$(cat .ignore 2>/dev/null | sed -e 's~^\./~~')"
 
 publicfuncs="$(find . -type f -not -name 'type.h' -exec grep -l '^/\* PUBLIC \*/$' {} \; | sed -e 's~\./~~' | grep -vxF "$ignorelist")"
+allfuncs="$(find . -type f -not -name 'type.h' -not -name 'struct.h' -regex '.*\.h' | sed -e 's~^\./~~' | grep -vxF "$ignorelist")"
 
 function convtoextern {
 	
@@ -61,13 +62,13 @@ for func in $publicfuncs; do
 							\~#endif~b continue;
 							b again;
 							:continue;
-							s~.*'"$funcname"' (.*);\\n", \(.*\));\n.*~\1~p
+							s~.*'"$funcname"' (.*);\\n", *\(.*\));\n.*~\1~p
 						}
 					}' \
 					"$func"
 	)"
 	echo '#define '"$funcname"' '"$funcname"'_Int' >> funcdefs
-	echo "$funcdecl"';' >> funcdeclrs
+	echo "$funcdecl"';' >> pubfuncdeclrs
 	echo '#undef '"$funcname" >> funcundefs
 	echo -n \
 "$funcdecl"' {
@@ -79,6 +80,24 @@ for func in $publicfuncs; do
 	
 done
 
+for func in $allfuncs; do
+	
+	funcdecl="$(
+			sed -n -e \
+					'\~static inline~{
+						:again;
+						N;
+						\~#ifndef~b continue;
+						b again;
+						:continue;
+						s~) {\n#ifndef.*$~)~p;
+					}' \
+					"$func"
+	)"
+	echo "$funcdecl"';' >> allfuncdeclrs
+	
+done
+
 echo -n \
 "$(find . -type f -name 'type.h' | sed -e 's~^\./~~' | grep -vxF "$ignorelist" | sed -e 's~\(.*\)~#include "\1"~')
 
@@ -86,9 +105,9 @@ $(find . -type f -name 'struct.h' | sed -e 's~^\./~~' | grep -vxF "$ignorelist" 
 
 $(cat funcdefs 2>/dev/null)
 
-$(cat funcdeclrs 2>/dev/null)
+$(cat allfuncdeclrs 2>/dev/null)
 
-$(find . -type f -not -name 'type.h' -and -not -name 'struct.h' -and -regex '.*\.h' | sed -e 's~^\./~~' | grep -vxF "$ignorelist" | sed -e 's~\(.*\)~#include "\1"~')
+$(find . -type f -not -name 'type.h' -not -name 'struct.h' -regex '.*\.h' | sed -e 's~^\./~~' | grep -vxF "$ignorelist" | sed -e 's~\(.*\)~#include "\1"~')
 
 $(cat funcundefs 2>/dev/null)
 
@@ -96,12 +115,13 @@ $(cat funcpassthrs 2>/dev/null)
 " > "$toplev"
 
 echo -n \
-"$(grep typedef "$(find . -type f -name 'type.h' -exec grep -l '^/\* PUBLIC \*/$' {} \; | sed -e 's~^\./~~' | grep -vxF "$ignorelist")" 2>/dev/null)
+"$(grep -h typedef $(find . -type f -name 'type.h' -exec grep -l '^/\* PUBLIC \*/$' {} \; | sed -e 's~^\./~~' | grep -vxF "$ignorelist") 2>/dev/null)
 
-$(cat funcdeclrs 2>/dev/null | convtoextern)
+$(cat pubfuncdeclrs 2>/dev/null | convtoextern)
 " > "$extern"
 
 rm -f funcdefs
-rm -f funcdeclrs
+rm -f allfuncdeclrs
+rm -f pubfuncdeclrs
 rm -f funcundefs
 rm -f funcpassthrs
