@@ -115,7 +115,7 @@ $(cat funcpassthrs 2>/dev/null)
 " > "$toplev"
 
 echo -n \
-"$(grep -h typedef $(find . -type f -name 'type.h' -exec grep -l '^/\* PUBLIC \*/$' {} \; | sed -e 's~^\./~~' | grep -vxF "$ignorelist") 2>/dev/null)
+"$(grep -h typedef $(find . -type f -name 'type.h' -exec grep -l '^/\* PUBLIC \*/$' {} \; | sed -e 's~^\./~~' | grep -vxF "$ignorelist") '' 2>/dev/null)
 
 $(cat pubfuncdeclrs 2>/dev/null | convtoextern)
 " > "$extern"
