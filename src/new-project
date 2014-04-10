@@ -73,12 +73,12 @@ uninstall : $(moduninstalls)
 
 echo -n \
 'export PATH=$PATH:'"$PWD"'/'"$1"'/bin
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:'"$PWD"'/'"$1"'/lib
-export CPATH=$CPATH:'"$PWD"'/'"$1"'/inc
+export LD_LIBRARY_PATH='"$PWD"'/'"$1"'/lib:$LD_LIBRARY_PATH
+export CPATH='"$PWD"'/'"$1"'/inc:$CPATH
 
-$(cat projrefs | sed -e 's~\(.*\)~source \1/bashrc')
+$(cat '"$PWD"'/projrefs | sed -e '"'"'s~\(.*\)~source \1/bashrc~'"'"')
 
 export PROJ='"$PWD"'
 ' > "$1"/bashrc
 
-touch projrefs
+touch "$1"/projrefs
