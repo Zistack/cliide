@@ -1,174 +1,26 @@
-# CLICBS: Command Line Interface C Build System #
+# CLIIDE: Command Line Interface Indegrated Development Environment
 
 This system consists of a set of scripts that effectively create a CLI IDE 
 environment for C/C++ projects.  It has a number of useful features, not the 
 least of which is generating the makefile system for you, so that building the 
 project is as easy as `make configure && make` in the build directory.
 
+Note that, due to the recent rewrite, this documentation is horrendously 
+incomplete.
+
 ## Creating a Project ##
-
-	$ new-project -h
-	Usage: new-project <project name>
-
-This script generates a shell for a new C/C++ project.  When run, it will create 
-a structure like this:
-
-	.
-	└── <project name>
-	    ├── bashrc
-	    ├── bin
-	    ├── build
-	    │   └── Makefile
-	    ├── doc
-	    ├── inc
-	    ├── lib
-	    ├── notes
-	    ├── projrefs
-	    └── src
-
-And that's it.  If you want to test the files built by the project, you can 
-source the bashrc file in the project root, and it will modify your `PATH`, 
-`CPATH`, and `LD_LIBRARY_PATH` environment variables appropriately.
 
 ## Adding an Executable ##
 
-	$ add-exe -h
-	Usage: add-exe <executable name>
-	Must be in project source tree
-
-This script will set up the necessary structure for an executable.  When run, it 
-will create a structure like this:
-
-	.
-	└── <executable name>
-	    ├── .ignore
-	    ├── .makefile
-	    ├── .module
-	    └── main.c
-
-As you can see, the main.c file is created for you, and even has a shell of a 
-main function in it.
-
-There are a couple of other files in here as well that are important to know 
-about, and we will discuss them later in the 'Special Files' section.
-
 ## Adding a Library ##
-
-	$ add-lib -h
-	Usage: add-lib <library name>
-	Must be in project source tree
-
-You can probably guess by now that this script sets up the necessary structure 
-for a shared library (This does not yet support static libraries).  When run, it 
-will create a structure like this:
-
-	.
-	├── <library name>
-	│   ├── .ignore
-	│   ├── .makefile
-	│   ├── .module
-	│   └── <library name>.c
-	└── <library name>.h
-
-Note that it generates an external header file for you.  As it turns out, you do 
-not need to lift a finger for the external header file to be created for you for 
-any library.  You can, of course, customize it, as the file you see is really 
-just a user hook.
 
 ## Adding a Header Library ##
 
-	$ add-hlib -h
-	Usage: add-hlib <header library name>
-	Must be in project source tree
-
-When run this script creates a structure like this:
-
-	.
-	├── <header library name>
-	│   ├── .ignore
-	│   ├── .makefile
-	│   └── .module
-	└── <header library name>.h
-
-The only real difference between this and a library is that it is not compiled 
-to a binary, and therefor lacks a .c file.
-
 ## Adding a Module ##
-
-	$ add-module -h
-	Usage: add-module <module name>
-	Must be in project source tree
-
-This script does little more than create a directory for organization.  When 
-run, it creates a structure like this:
-
-	.
-	└── [module name]
-	    └── .module
-
-You might notice that this looks like a subset of the executable, library, and 
-header library structures.  This is indeed correct.  Every directory inside of 
-the source tree is (read: must also be) a module.
-
-Also, you can add a module outside of a compiled module, and then add the 
-compiled module inside of them.  This is useful for when you want a family of 
-libraries that are under the same project name.
 
 ## Adding a Function ##
 
-	$ add-function -h
-	Usage: add-function <function name>
-	Must be in project source tree
-	Must be in module
-
-This script creates a file in the local directory called: `tr [:upper:] 
-[:lower:] <<< <function name>`.h
-
-The contents of the file will look like:
-
-	static inline
-	/* ret */ <module_Prefix>_<FunctionName> (/* args */) {
-	#ifndef NDEBUG
-		fprintf (stderr, "<module_Prefix>_<FunctionName> ();\n", /* arg names */);
-	#endif /* NDEBUG */
-		
-		/* code */
-		
-	}
-
-where <module prefix> is a prefix constructed from the names of the enclosing 
-module(s).  The first module will be lower case, while the rest will be case 
-sensitive to whatever you named then during creation.
-
-Isn't it nice how it generates the debug output for you?  As it is, you cannot 
-at this time delete the debug output code - it is necessary for the build system 
-to operate.  It is still perfectly OK to compile with `NDEBUG` defined, of 
-course.
-
 ## Adding a Class ##
-
-	$ add-class -h
-	Usage: add-class <class name>
-	Must be in project source tree
-	Must be in module
-
-When run, the script creates a structure like this:
-
-	.
-	└── [class name]
-	    ├── .module
-	    ├── create.h
-	    ├── destroy.h
-	    ├── struct.h
-	    └── type.h
-
-Fairly straightforward - generates constructor and destructor for you.  This is 
-where this system starts to show it's bias toward the C way of doing things. The 
-constructor and destructor are just prefixed functions, and not full C++ 
-constructors and destructors.
-
-In the struct.h file, you are given a shell of a struct definition, which you 
-can fill out as desired.
 
 ## Special Files ##
 
@@ -191,13 +43,6 @@ contents cannot be removed, or the build system will cease to operate properly.
 Also exists in the toplevel module of a compiled entity, this contains the 
 makefile hooks and variables specific to that entity.  If a library needs to be 
 linked to pthread, for example, this is the file to modify.
-
-### internal.h/external.h ###
-
-You will see references to these files inside of files like main.c and the named 
-external headers.  Do not remove these references.  These files are generated 
-based on the other files in the compiled entity.  They tie together the types 
-and structs and functions into a cohesive body of code.
 
 ### bashrc ###
 
@@ -228,17 +73,6 @@ One of the major design considerations in this system was the ability to use
 create something and later want to remove it, then you can absolutely use `rm`.
 
 ## Exposing a Library Function or Type ##
-
-As you may have noticed from the 'Adding a Function' above, all functions are 
-static inline by default.  In fact, all functions are static inline - period. To 
-expose a function in a shared library so that another piece of code can use it, 
-all you have to do is put the following line in the header file:
-
-	/* PUBLIC */
-
-It doesn't matter much where it is.  Similarly, to use a function that uses one 
-of the library's types in the prototype, you will need to make that type public.  
-This is done the same way.
 
 ## Adding a Project Reference ##
 
