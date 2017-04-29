@@ -1,0 +1,115 @@
+#!/bin/bash
+
+function import-public-type {
+    
+    if test -f type.hpp
+    then
+	
+	if grep -l "${pragmaregex}" type.hpp
+	then
+	    
+	    get-typedef
+	    
+	fi
+	
+    fi
+    
+}
+
+function import-public-struct {
+    
+    if test -f struct.hpp
+    then
+	
+	if grep -l "${pragmaregex}" struct.hpp
+	then
+	    
+	    get-struct
+	    
+	fi
+	
+    fi
+    
+}
+
+function declare-public-constants {
+    
+    for file in $(list-public-constants)
+    do
+	
+	get-constant-definition "${file}"
+	
+    done
+    
+}
+
+function prototype-public-functions {
+    
+    set-directory-state
+    
+    for file in $(list-public-functions)
+    do
+	
+	local name="$(get-function-name "${file}")"
+	
+	echo 'extern "C"'
+	echo "$(get-qualified-type "$(get-function-return-type "${file}")")"' '"$(get-prefix)"'_'"${name}"'_Ext ('
+	get-qualified-function-arguments "${file}"
+	echo ');'
+	
+    done
+    
+}
+
+function import-public-functions {
+    
+    for file in $(list-public-functions)
+    do
+	
+	local name="$(get-function-name "${file}")"
+
+	echo "$(get-function-return-type "${file}")"' '"${name}"' ('
+	get-function-arguments "${file}"
+	echo ') {'
+	echo '  '
+	echo '  return '"$(get-prefix)"'_'"${name}"'_Ext ('"$(get-function-argument-names "${file}")"');'
+	echo '  '
+	echo '}'
+	
+    done
+    
+}
+
+function namespace-stuff-pre {
+    
+    namespace-do import-public-type .
+    echo ''
+    namespace-do import-public-struct .
+    echo ''
+    namespace-do declare-public-constants .
+    
+}
+
+function namespace-stuff-post {
+    
+    namespace-do import-public-functions .
+    
+}
+
+cd "${1}"
+set-directory-state
+
+includeguard="$(get-prefix | upcase)"'_HPP'
+
+echo '#ifndef '"${includeguard}"
+echo '#define '"${includeguard}"
+echo ''
+
+wrap "namespace-stuff-pre"
+
+pseudo-namespace-do prototype-public-functions
+
+wrap "namespace-stuff-post"
+
+echo ''
+echo '#endif /* '"${includeguard}"' */'
