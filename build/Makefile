@@ -2,26 +2,26 @@ SHELL=/bin/sh
 
 srcdir = ../src
 bindir = ../bin
-insdir = $(shell cat insdir)
 
-files = $(shell ls $(srcdir))
+files = $(patsubst %,$(srcdir)/%,$(shell ls -1 $(srcdir)))
 
 .DEFAULT_TARGET : all
-all : $(files:%=$(bindir)/%)
+all : $(bindir)/cliide
 
-$(bindir)/% : $(srcdir)/%
-	cp $< $@
+$(bindir)/cliide : $(files)
+	./compile.sh
+	chmod +x $(@)
 
 .PHONY : clean
 clean :
-	rm -f $(files:%=$(bindir)/%)
+	rm -f $(bindir)/cliide
 
 .PHONY : install
-install : $(files:%=$(insdir)/%)
+install : /usr/bin/cliide
 
-$(insdir)/% : $(bindir)/%
-	cp $< $@
+/usr/bin/cliide : $(bindir)/cliide
+	cp $(<) $(@)
 
 .PHONY : uninstall
-uninstall : 
-	rm -f $(files:%=$(insdir)/%)
+uninstall :
+	rm -f /usr/bin/cliide

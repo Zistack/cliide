@@ -1,1 +1,1 @@
-export PATH=$PATH:/home/zachary/projects/clicbs/bin
+export PATH=$PATH:/home/zistack/projects/cliide/bin
