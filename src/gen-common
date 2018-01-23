@@ -1,289 +1,194 @@
-#!/bin/bash
-
 special='
 type.hpp
 struct.hpp
 main.hpp
 include.hpp
 '
+
 pragmaregex='# *pragma *cliide *public'
 
-s='\**'
-t='<[a-zA-Z0-9_<>*, \n]*>'
-id='[a-zA-Z0-9_]*'
-qid='[a-zA-Z0-9_:]*'
-    
 function list-source-files {
-    
-    find . -mindepth 1 -maxdepth 1 -type f -regex '\./[^.].*\.hpp' |
+	
+	find . -mindepth 1 -maxdepth 1 -type f -regex '\./[^.].*\.hpp' |
 	sed -e 's~\./~~' |
 	grep -vxF "${special}"
-    
+	
 }
 
 function list-modules {
-    
-    find . -mindepth 1 -maxdepth 1 -type d -regex '\./[^.].*' | sed -e 's~\./~~'
-    
+	
+	find . -mindepth 1 -maxdepth 1 -type d -regex '\./[^.].*' | sed -e 's~\./~~'
+	
 }
 
 function list-constants {
-    
-    sourcefiles="$(list-source-files)"
-    
-    if test -n "${sourcefiles}"
-    then
 	
-	grep -l 'const' ${sourcefiles}
+	sourcefiles="$(list-source-files)"
 	
-    fi
-    
+	if test -n "${sourcefiles}"
+	then
+		
+		grep -l 'const' ${sourcefiles}
+		
+	fi
+	
 }
 
 function list-public-constants {
-    
-    constants="$(list-constants)"
-    
-    if test -n "${constants}"
-    then
 	
-	grep -l "${pragmaregex}" ${constants}
+	constants="$(list-constants)"
 	
-    fi
-    
+	if test -n "${constants}"
+	then
+		
+		grep -l "${pragmaregex}" ${constants}
+		
+	fi
+	
 }
 
 function list-private-constants {
-    
-    constants="$(list-constants)"
-    
-    if test -n "${constants}"
-    then
 	
-	grep -L "${pragmaregex}" ${constants}
+	constants="$(list-constants)"
 	
-    fi
-    
+	if test -n "${constants}"
+	then
+		
+		grep -L "${pragmaregex}" ${constants}
+		
+	fi
+	
 }
 
 function list-functions {
-    
-    sourcefiles="$(list-source-files)"
-    
-    if test -n "${sourcefiles}"
-    then
 	
-	grep -L 'const' ${sourcefiles}
+	sourcefiles="$(list-source-files)"
 	
-    fi
-    
+	if test -n "${sourcefiles}"
+	then
+		
+		grep -L 'const' ${sourcefiles}
+		
+	fi
+	
 }
 
 function list-public-functions {
-    
-    functions="$(list-functions)"
+	
+	functions="$(list-functions)"
 
-    if test -n "${functions}"
-    then
+	if test -n "${functions}"
+	then
+		
+		grep -l "${pragmaregex}" ${functions}
+		
+	fi
 	
-	grep -l "${pragmaregex}" ${functions}
-	
-    fi
-    
 }
 
 function list-private-functions {
-    
-    functions="$(list-functions)"
-    
-    if test -n "${functions}"
-    then
 	
-	grep -L "${pragmaregex}" ${functions}
+	functions="$(list-functions)"
 	
-    fi
-    
+	if test -n "${functions}"
+	then
+		
+		grep -L "${pragmaregex}" ${functions}
+		
+	fi
+	
 }
 
 function get-typedef {
-    
-    cat type.hpp | grep -v '^#'
-    
+	
+	cat type.hpp | grep -v '^#'
+	
 }
 
 function get-struct {
-    
-    cat struct.hpp | grep -v '^#'
-    
+	
+	cat struct.hpp | grep -v '^#'
+	
 }
 
 function get-constant-definition {
-    
-    local expr=':addline;s~.*\(static const '${id}' = .*;\).*~\1~;t :print;N;b addline;:print;p'
-    
-    cat "${1}" | sed -ne "${expr}"
-    
+	
+	local expr=':addline;s~.*\(static const [a-zA-Z0-9_]* = .*;\).*~\1~;t :print;N;b addline;:print;p'
+	
+	cat "${1}" | sed -ne "${expr}"
+	
 }
 
 function get-function-declaration {
-    
-    local expr=':addline;s~.*\(\(template '${t}'\n\)*static inline\n'${qid}'\( '${t}'\)*\( '${s}'\)* '${id}' ([a-zA-Z0-9_:<>*., \t\n]*)\).*~\1;~;t print;N;b addline;:print;p'
-    
-    cat "${1}" | sed -ne "${expr}"
-    
-}
-
-function get-function-return-type {
-    
-    local expr=':addline;s~^.*static inline\n\('${qid}'\( '${t}'\)*\( '${s}'\)*\) '${id}' ([a-zA-Z0-9_:<>*., \t\n]*);$~\1~;t;N;b addline;'
-    
-    get-function-declaration "${1}" | sed -e "${expr}"
-    
-}
-
-function get-function-name {
-    
-    local expr=':addline;s~^.*static inline\n'${qid}'\( '${t}'\)*\( '${s}'\)* \('${id}'\) ([a-zA-Z0-9_:<>*., \t\n]*);$~\3~;t;N;b addline'
-    
-    get-function-declaration "${1}" | sed -e "${expr}"
-    
-}
-
-function get-function-arguments {
-    
-    local expr=':addline;s~^.*static inline\n'${qid}'\( '${t}'\)*\( '${s}'\)* '${id}' (\([a-zA-Z0-9_:<>*., \t\n]*\));$~\3~;t strip;N;b addline;:strip;s~\n~~g'
-    
-    get-function-declaration "${1}" | sed -e "${expr}"
-    
-}
-
-# Variadic arguments make this much harder.  We need to account for this.
-function get-function-argument-types {
-    
-    local expr='s~\('${qid}'\( '${t}'\)*\( '${s}'\)*\) '${id}'~\1~g'
-    
-    get-function-arguments "${1}" | sed -e "${expr}"
-    
-}
-
-function get-function-argument-names {
-    
-    local expr='s~'${qid}'\( '${t}'\)*\( '${s}'\)* \('${id}'\)~\3~g'
-    
-    get-function-arguments "${1}" | sed -e "${expr}"
-    
-}
-
-function get-qualified-type {
-    
-    set-directory-state
-    
-    if test -z "$(sed -ne '\~\('"${id}"'::\)*T\( '"${t}"'\)*\( '"${s}"'\)*$~p' <<< "${1}")"
-    then
 	
-	echo "${1}"
+	local expr=':addline;s~\(.*\)\n{$~\1;~;t print;N;b addline;:print;p'
 	
-    elif test -f "$(sed -e ':strip;s~<[^<>]*>~~;t strip;s~[ *]~~g;s~::~/~' <<< "${1}" | downcase)"'ype.hpp'
-    then
+	cat "${1}" | sed -ne "${expr}"
 	
-	echo "$(get-namespace)"'::'"${1}"
-	
-    elif test -n "${moddir}"
-    then
-	
-	echo '`'"${1}'"' does not name a type' 1>&2
-	exit 1
-	
-    else
-	
-	cwd="$(pwd)"
-	
-	cd ..
-	
-	get-qualified-type "${1}"
-	
-	cd "${cwd}"
-	
-    fi
-    
-}
-
-function get-qualified-function-arguments {
-    
-    types="$(get-function-argument-types "${1}" | sed -e 's~, ~,~')"
-    names="$(get-function-argument-names "${1}" | sed -e 's~, ~,~')"
-    
-    IFS=',' read -ra typearray <<< "${types}"
-    IFS=',' read -ra namearray <<< "${names}"
-    
-    for i in "${!typearray[@]}"
-    do
-	
-	echo "$(get-qualified-type "${typearray["${i}"]}")"' '"${namearray["${i}"]}"','
-	
-    done | sed -e 's~,$~~'
-    
 }
 
 function namespace-do {
-    
-    echo 'namespace '$(cat .module)' {'
-    echo '  '
-    
-    local cwd="$(pwd)"
-    for module in $(list-modules)
-    do
 	
-	cd "${module}"
-	
-	namespace-do "${1}" "${2}"'/'"${module}" | sed -e 's~^\([^#]\)~  \1~;s~^#~#  ~'
-	
-	cd "${cwd}"
-	
-    done
-    
-    ${1} "${2}"
-    
-    echo '  '
-    echo '}'
-    
-}
-
-function pseudo-namespace-do {
-    
-    local cwd="$(pwd)"
-    for module in $(list-modules)
-    do
-	
-	cd "${module}"
-	
-	pseudo-namespace-do "${1}"
-	
-	cd "${cwd}"
-	
-    done
-    
-    ${1}
-    
-}
-
-function wrap {
-    
-    topnamespace="$(get-namespace | sed -e 's~[^:]*$~~;s~:*$~~')"
-    
-    if test -n "${topnamespace}"
-    then
-	
-	echo 'namespace '"${topnamespace}"' {'
+	echo 'namespace '$(cat .module)' {'
 	echo '  '
-	sed -e 's~^\([^#]\)~  \1~;s~^#~#  ~'
+	
+	local cwd="$(pwd)"
+	for module in $(list-modules)
+	do
+		
+		cd "${module}"
+		
+		namespace-do "${1}" "${2}"'/'"${module}" | sed -e 's~^\([^#]\)~  \1~;s~^#~#  ~'
+		
+		cd "${cwd}"
+		
+	done
+	
+	${1} "${2}"
+	
 	echo '  '
 	echo '}'
 	
-    else
-	
-	cat
-	
-    fi <<< "$(${1})"
-    
 }
+
+function pseudo-namespace-do {
+	
+	local cwd="$(pwd)"
+	for module in $(list-modules)
+	do
+		
+		cd "${module}"
+		
+		pseudo-namespace-do "${1}"
+		
+		cd "${cwd}"
+		
+	done
+	
+	${1}
+	
+}
+
+function wrap {
+	
+	topnamespace="$(get-namespace | sed -e 's~[^:]*$~~;s~:*$~~')"
+	
+	if test -n "${topnamespace}"
+	then
+		
+		echo 'namespace '"${topnamespace}"' {'
+		echo '  '
+		sed -e 's~^\([^#]\)~  \1~;s~^#~#  ~'
+		echo '  '
+		echo '}'
+		
+	else
+		
+		cat
+		
+	fi <<< "$(${1})"
+	
+}
+
+cd "${1}"
+set-directory-state

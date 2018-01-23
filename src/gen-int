@@ -1,101 +1,71 @@
-#!/bin/bash
-
 function include-type {
-    
-    if test -f type.hpp
-    then
 	
-	echo '# include "'"${1}/"'type.hpp"'
+	if test -f type.hpp
+	then
+		
+		echo '# include "'"${1}/"'type.hpp"'
+		
+	fi
 	
-    fi
-    
 }
 
 function include-struct {
-    
-    if test -f struct.hpp
-    then
 	
-	echo '# include "'"${1}/"'struct.hpp"'
+	if test -f struct.hpp
+	then
+		
+		echo '# include "'"${1}/"'struct.hpp"'
+		
+	fi
 	
-    fi
-    
 }
 
 function include-constants {
-    
-    for file in $(list-constants)
-    do
 	
-	echo '# include "'"${1}/${file}"'"'
+	for file in $(list-constants)
+	do
+		
+		echo '# include "'"${1}/${file}"'"'
+		
+	done
 	
-    done
-    
 }
 
-function prototype-functions {
-    
-    for file in $(list-functions)
-    do
+function declare-functions {
 	
-	get-function-declaration ${file} | sed -e 's~^~  ~'
+	for file in $(list-functions)
+	do
+		
+		get-function-declaration ${file} | sed -e 's~^~  ~'
+		
+	done
 	
-    done
-    
 }
 
 function include-functions {
-    
-    for file in $(list-functions)
-    do
 	
-	echo '# include "'"${1}/${file}"'"'
+	for file in $(list-functions)
+	do
+		
+		echo '# include "'"${1}/${file}"'"'
+		
+	done
 	
-    done
-    
-}
-
-# Suppose the argument type or such is a primitive type...  That is, it doesn't
-# end in 'T\**'.  I need to fix the qualified type function to deal with that.
-
-function export-public-functions {
-    
-    set-directory-state
-    
-    for file in $(list-public-functions)
-    do
-	
-	local name="$(get-function-name "${file}")"
-	
-	echo 'extern "C"'
-	echo "$(get-qualified-type "$(get-function-return-type "${file}")")"' '"$(get-prefix)"'_'"${name}"'_Ext ('
-	get-qualified-function-arguments "${file}"
-	echo ') {'
-	echo '  '
-	echo '  return '"$(get-namespace)"'::'"${name}"' ('"$(get-function-argument-names "${file}")"');'
-	echo '  '
-	echo '}'
-	
-    done
-    
 }
 
 function namespace-stuff {
-    
-    namespace-do include-type .
-    echo ''
-    namespace-do include-constants .
-    echo ''
-    namespace-do include-struct .
-    echo ''
-    namespace-do prototype-functions .
-    echo ''
-    namespace-do include-functions .
-    
+	
+	namespace-do include-type .
+	echo ''
+	namespace-do include-constants .
+	echo ''
+	namespace-do include-struct .
+	echo ''
+	namespace-do declare-functions .
+	echo ''
+	namespace-do include-functions .
+	
 }
-
-cd "${1}"
-set-directory-state
 
 includeguard="$(get-prefix | upcase)"'_HPP'
 
@@ -111,14 +81,14 @@ echo ''
 
 if test -f main.hpp
 then
-    
-    echo '#include "main.hpp"'
-    echo ''
-    
+	
+	echo '#include "main.hpp"'
+	echo ''
+	
 else
-    
-    pseudo-namespace-do export-public-functions
-    
+	
+	pseudo-namespace-do export-public-functions
+	
 fi
 
 echo '#endif /* '"${includeguard}"' */'
