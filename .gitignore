@@ -4,3 +4,4 @@ build/*
 bin/*
 lib/*
 inc/*
+!build/compile.sh
