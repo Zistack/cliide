@@ -1,0 +1,108 @@
+#INCLUDE (struct)
+#INCLUDE (function)
+#INCLUDE (enum)
+#INCLUDE (makefile)
+
+function create-struct
+{
+	local name="${1}"
+
+	mkdir "${name}"
+
+	print-struct-type > "${name}"/type.hpp
+
+	print-struct-definition > "${name}"/struct.hpp
+}
+
+function create-function
+{
+	local name="${1}"
+
+	print-function "${name}" > "${name}".hpp
+}
+
+function create-module
+{
+	local name="${1}"
+
+	mkdir "${name}"
+}
+
+function create-typedef
+{
+	local name="${1}"
+	local type="${2}"
+
+	if [ -z "${type}" ]
+	then
+		type='/* type */'
+	fi
+
+	mkdir "${name}"
+
+	print-typedef "${type}" > "${name}"/type.hpp
+}
+
+function create-constant
+{
+	local name="${1}"
+	local value="${2}"
+
+	if [ -z "${value}" ]
+	then
+		value='/* value */'
+	fi
+
+	print-constant "${name}" "${value}" > "${name}".hpp
+}
+
+function create-project
+{
+	local name="${1}"
+
+	mkdir -p "${name}"/build
+	mkdir -p "${name}"/src
+	mkdir -p "${name}"/bin
+	mkdir -p "${name}"/inc
+	mkdir -p "${name}"/doc
+
+	print-project-makefile > "${name}"/build/Makefile
+
+	cat > "${name}"/build/gen-bin.sh <<'EOF'
+#COMPILE (gen-bin.sh)
+EOF
+	chmod +x "${name}"/build/gen-bin.sh
+
+	cat > "${name}"/build/gen-hdr.sh <<'EOF'
+#COMPILE (gen-hdr.sh)
+EOF
+	chmod +x "${name}"/build/gen-hdr.sh
+
+	cat > "${name}"/build/format.sh <<'EOF'
+#COMPILE (format.sh)
+EOF
+	chmod +x "${name}"/build/format.sh
+
+	cat > "${name}"/.clang-format <<'EOF'
+#COMPILE (clang-format)
+EOF
+}
+
+function create-binary
+{
+	local name="${1}"
+
+	mkdir -p "${name}"/.build
+	touch "${name}"/include.hpp
+	print-main > "${name}"/main.hpp
+	print-binary-makefile "${name}" > "${name}"/.makefile
+}
+
+function create-header
+{
+	local name="${1}"
+
+	mkdir -p "${name}"/.build
+	touch "${name}"/include.hpp
+	print-header-makefile "${name}" > "${name}"/.makefile
+}

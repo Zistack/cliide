@@ -9,7 +9,7 @@ files = $(patsubst %,$(srcdir)/%,$(shell ls -1 $(srcdir)))
 all : $(bindir)/cliide
 
 $(bindir)/cliide : $(files)
-	./compile.sh
+	cd $(srcdir) && ../build/compile.sh cliide > $(@)
 	chmod +x $(@)
 
 .PHONY : clean

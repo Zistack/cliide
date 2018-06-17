@@ -1,554 +1,59 @@
 #!/bin/bash
 
-# Helpers
+#INCLUDE (commands)
 
-COMPILE(common)
+command="${1}"
 
-function print-project-makefile {
-	
-	echo 'SHELL = /bin/sh'
+function print-help
+{
+	echo 'Usage: '"${0}"' [command] [options]'
 	echo ''
-	echo 'incdir = ../inc'
-	echo 'srcdir = ../src'
-	echo 'bindir = ../bin'
-	echo 'libdir = ../lib'
+	echo 'project | p <name>'
+	echo '	Creates a new project directory.'
 	echo ''
-	echo 'WARNINGS = -Wchar-subscripts -Wcomment -Wformat=2 -Winit-self -Wimplicit -Wignored-qualifiers -Wmain -Wmissing-braces -Wmissing-include-dirs -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wstrict-aliasing -Warray-bounds -Wfloat-equal -Wundef -Wno-endif-labels -Wpointer-arith -Wtype-limits -Wconversion -Wenum-compare -Wsign-conversion -Waddress -Wmissing-field-initializers -Wvolatile-register-var -Wno-write-strings -Wsign-promo'
+	echo 'binary | b <name>'
+	echo '	Creates a new binary directory for a binary called <name>.  This'
+	echo '	should be executed inside of a project'"'"'s '"'"'src'"'"' directory.'
 	echo ''
-	echo 'CPP = clang++'
-	echo 'CPPFLAGS = $(WARNINGS) -Werror -pipe -I $(incdir)'
+	echo 'header | h <name>'
+	echo '	Creates a new header library directory for a library called <name>.'
+	echo '	This should be executed inside of a project'"'"'s '"'"'src'"'"' directory.'
 	echo ''
-	echo 'CC = clang'
-	echo 'CLFLAGS = -L $(libdir)'
+	echo 'constant | c <name> [value]'
+	echo '	Defines a constant called <name>, assigned to <value> if provided.'
 	echo ''
-	echo 'modmkfiles = $(shell find $(srcdir) -type f -name .makefile)'
-	echo 'moddirs = $(modmkfiles:$(srcdir)/%/.makefile=%)'
-	echo 'modules = $(subst /,-,$(moddirs))'
-	echo 'modcleans = $(modules:%=%-clean)'
-	echo 'modinstalls = $(modules:%=%-install)'
-	echo 'moduninstalls = $(modules:%=%-uninstall)'
+	echo 'function | f <name>'
+	echo '	Sketches a function definition for a function called <name>.'
 	echo ''
-	echo 'include $(modmkfiles)'
+	echo 'module | m <name>'
+	echo '	Creates an empty module called <name>.'
 	echo ''
-	echo '.DEFAULT_GOAL := all'
+	echo 'struct | s <name>'
+	echo '	Sketches a struct definition for a struct called <name>.'
 	echo ''
-	echo '.PHONY : all'
-	echo 'all : $(modules)'
+	echo 'typedef | t <name> [type]'
+	echo '	Defines a type called <name>, with definition <type> if provided.'
 	echo ''
-	echo '.PHONY : clean'
-	echo 'clean : $(modcleans)'
-	echo ''
-	echo '.PHONY : install'
-	echo 'install : $(modinstalls)'
-	echo ''
-	echo '.PHONY : uninstall'
-	echo 'uninstall : $(moduninstalls)'
-	
+	echo '*'
+	echo '	Prints this message.'
 }
 
-function print-project-bashrc {
-	
-	local projpath="$(pwd)"'/'"${1}"
-	
-	echo 'export PATH=${PATH}:'"${projpath}"'/bin'
-	echo 'export LD_LIBRARY_PATH='"${projpath}"'/lib:${LD_LIBRARY_PATH}'
-	echo 'export CPATH='"${projpath}"'/inc:${CPATH}'
-	echo ''
-	echo '$(cat '"${projpath}"'/projrefs | sed -e '"'"'s~\(.*\)~source \1/bashrc~'"'"')'
-	echo ''
-	echo 'export PROJ='"${projpath}"
-	
-}
-
-function print-bin-main {
-	
-	echo 'int main (int argc, char ** argv) {'
-	echo '	'
-	echo '	/* code */'
-	echo '	'
-	echo '	return 0;'
-	echo '	'
-	echo '}'
-	
-}
-
-function print-bin-makefile {
-	
-	set-directory-state
-	
-	local prefix="$(echo "${moddir}/${1}" | sed -e 's~^/~~;s~/~-~g')"
-	
-	local lmv="${prefix}"'-module'
-	local lpv="${prefix}"'-path'
-	local lfv="${prefix}"'-files'
-	local ldv="${prefix}"'-directories'
-	
-	echo "${lmv}"' = '"${moddir}"
-	echo "${lpv}"' = $(srcdir)/$('"${lmv}"')/'"${1}"
-	echo "${lfv}"' = $(shell find $('"${lpv}"') -type f -regex '"'"'.*/[^./][^/]*\.hpp'"'"')'
-	echo "${ldv}"' = $(shell find $('"${lpv}"') -type d -regex '"'"'.*/[^./][^/]*'"'"')'
-	echo ''
-	echo '.PHONY : '"${prefix}"
-	echo "${prefix}"' : $(bindir)/'"${prefix}"
-	echo ''
-	echo '.PHONY : '"${prefix}"'-clean'
-	echo "${prefix}"'-clean :'
-	echo '	rm -rf $(bindir)/'"${prefix}"
-	echo '	rm -rf $('"${lpv}"')/.int.o'
-	echo '	rm -rf $('"${lpv}"')/.int.cpp'
-	echo ''
-	echo '.PHONY : '"${prefix}"'-install'
-	echo "${prefix}"'-install : /usr/bin/'"${prefix}"
-	echo ''
-	echo '.PHONY : '"${prefix}"'-uninstall'
-	echo "${prefix}"'-uninstall :'
-	echo '	rm -rf /usr/bin/'"${prefix}"
-	echo ''
-	echo '$(bindir)/'"${prefix}"' : $('"${lpv}"')/.int.o'
-	echo '	$(CC) $(CLFLAGS) -o $(@) $(<)'
-	echo ''
-	echo '$('"${lpv}"')/.int.o : $('"${lpv}"')/.int.cpp $('"${lfv}"')'
-	echo '	$(CPP) $(CPPFLAGS) -I $('"${lpv}"') -c -o $(@) $(<)'
-	echo ''
-	echo '$('"${lpv}"')/.int.cpp : $('"${lfv}"') $('"${ldv}"')'
-	echo '	./gen-int $('"${lpv}"') | clang-format > $(@)'
-	echo ''
-	echo '/usr/bin/'"${prefix}"' : $(bindir)/'"${prefix}"
-	echo '	cp $(<) $(@)'
-	
-}
-
-function print-lib-makefile {
-	
-	set-directory-state
-	
-	local prefix="$(echo "${moddir}/${1}" | sed -e 's~^/~~;s~/~-~g')"
-
-	local lmv="${prefix}"'-module'
-	local lpv="${prefix}"'-path'
-	local lfv="${prefix}"'-files'
-	local ldv="${prefix}"'-directories'
-	
-	echo "${lmv}"' = '"${moddir}"
-	echo "${lpv}"' = $(srcdir)/$('"${lmv}"')/'"${1}"
-	echo "${lfv}"' = $(shell find $('"${lpv}"') -type f -regex '"'"'.*/[^./][^/]*\.hpp'"'"')'
-	echo "${ldv}"' = $(shell find $('"${lpv}"') -type d -regex '"'"'.*/[^./][^/]*'"'"')'
-	echo ''
-	echo '.PHONY : '"${prefix}"
-	echo "${prefix}"' : $(libdir)/lib'"${prefix}"'.so $(incdir)/$('"${lmv}"')/'"${1}"'.hpp'
-	echo ''
-	echo '.PHONY : '"${prefix}"'-clean'
-	echo "${prefix}"'-clean :'
-	echo '	rm -rf $(libdir)/lib'"${prefix}"'.so'
-	echo '	./clean-hdr $(incdir) ./$('"${lmv}"')/'"${1}"'.hpp'
-	echo '	rm -rf $('"${lpv}"')/.int.o'
-	echo '	rm -rf $('"${lpv}"')/.int.cpp'
-	echo '	rm -rf $('"${lpv}"')/.ext.hpp'
-	echo ''
-	echo '.PHONY : '"${prefix}"'-install'
-	echo "${prefix}"'-install : /usr/lib/lib'"${prefix}"'.so /usr/inc/$('"${lmv}"')/'"${1}"'.hpp'
-	echo ''
-	echo '.PHONY : '"${prefix}"'-uninstall'
-	echo "${prefix}"'-uninstall :'
-	echo '	rm -rf /usr/lib/lib'"${prefix}"'.so'
-	echo '	./clean-hdr /usr/inc ./$('"${lmv}"')/'"${1}"'.hpp'
-	echo ''
-	echo '$(libdir)/lib'"${prefix}"'.so : $('"${lpv}"')/.int.o'
-	echo '	$(CC) $(CLFLAGS) -shared -o $(@) $(<)'
-	echo ''
-	echo '$('"${lpv}"')/.int.o : $('"${lpv}"')/.int.cpp $('"${lfv}"')'
-	echo '	$(CPP) $(CPPFLAGS) -I $('"${lpv}"') -fPIC -c -o $(@) $(<)'
-	echo ''
-	echo '$('"${lpv}"')/.int.cpp : $('"${lfv}"') $('"${ldv}"')'
-	echo '	./gen-int $('"${lpv}"') | clang-format > $(@)'
-	echo ''
-	echo '$(incdir)/$('"${lmv}"')/'"${1}"'.hpp : $('"${lpv}"')/.ext.hpp'
-	echo '	mkdir -p $(dir $(@))'
-	echo '	cp $(<) $(@)'
-	echo ''
-	echo '$('"${lpv}"')/.ext.hpp : $('"${lfv}"') $('"${ldv}"')'
-	echo '	./gen-ext $('"${lpv}"') | clang-format > $(@)'
-	echo ''
-	echo '/usr/lib/lib'"${prefix}"'.so : $(libdir)/lib'"${prefix}"'.so'
-	echo '	cp $(<) $(@)'
-	echo ''
-	echo '/usr/inc/$('"${lmv}"')/'"${1}"'.hpp : $(incdir)/$('"${lmv}"')/'"${1}"'.hpp'
-	echo '	mkdir -p $(dir $(@))'
-	echo '	cp $(<) $(@)'
-	
-}
-
-function print-hlib-makefile {
-	
-	set-directory-state
-	
-	local prefix="$(echo "${moddir}/${1}" | sed -e 's~^/~~;s~/~-~g')"
-	
-	local lmv="${prefix}"'-module'
-	local lpv="${prefix}"'-path'
-	local lfv="${prefix}"'-files'
-	local ldv="${prefix}"'-directories'
-	
-	echo "${lmv}"' = '"${moddir}"
-	echo "${lpv}"' = $(srcdir)/$('"${lmv}"')/'"${1}"
-	echo "${lfv}"' = $(shell find $('"${lpv}"') -type f -regex '"'"'.*/[^./][^/]*\.hpp'"'"')'
-	echo "${ldv}"' = $(shell find $('"${lpv}"') -type d -regex '"'"'.*/[^./][^/]*'"'"')'
-	echo ''
-	echo '.PHONY : '"${prefix}"
-	echo "${prefix}"' : $('"${lfv}"':$(srcdir)/%=$(incdir)/%) $(incdir)/$('"${lmv}"')/'"${1}"'.hpp'
-	echo ''
-	echo '.PHONY : '"${prefix}"'-clean'
-	echo "${prefix}"'-clean :'
-	echo '	./clean-hdr $(incdir) $('"${lfv}"':$(srcdir)/%=./%) ./$('"${lmv}"')/'"${1}"'.hpp'
-	echo '	rm -rf $('"${lpv}"')/.ext.hpp'
-	echo ''
-	echo '.PHONY : '"${prefix}"'-install'
-	echo "${prefix}"'-install : $('"${lfv}"':$(srcdir)/%=/usr/inc/%) /usr/inc/$('"${lmv}"')/'"${1}"'.hpp'
-	echo ''
-	echo '.PHONY : '"${prefix}"'-uninstall'
-	echo "${prefix}"'-uninstall :'
-	echo '	./clean-hdr /usr/inc $('"${lfv}"':$(srcdir)/%=./%) ./$('"${lmv}"')/'"${1}"'.hpp'
-	echo ''
-	# The following rule will be identical for all header libraries.
-	echo '$(incdir)/%.hpp : $(srcdir)/%.hpp'
-	echo '	mkdir -p $(dir $(@))'
-	echo '	cp $(<) $(@)'
-	echo ''
-	echo '$(incdir)/$('"${lmv}"')/'"${1}"'.hpp : $('"${lpv}"')/.ext.hpp'
-	echo '	$(CPP) $(CPPFLAGS) -I $('"${lpv}"') -fsyntax-only $(<)'
-	echo '	mkdir -p $(dir $(@))'
-	echo '	cat $(<) | sed -e '"'"'s~\./~./'"${1}"'/~'"'"' > $(@)'
-	echo ''
-	echo '$('"${lpv}"')/.ext.hpp : $('"${lfv}"') $('"${ldv}"')'
-	echo '	./gen-int $('"${lpv}"') > $(@)'
-	echo ''
-	echo '/usr/inc/%.hpp : $(incdir)/%.hpp'
-	echo '	mkdir -p $(dir $(@))'
-	echo '	cp $(<) $(@)'
-	
-}
-
-function print-struct-struct {
-	
-	echo 'struct T'
-	echo '{'
-	echo '	'
-	echo '	/* members */'
-	echo '	'
-	echo '};'
-	
-}
-
-function print-struct-type {
-	
-	echo 'typedef struct T T;'
-	
-}
-
-function print-struct-destroy {
-	
-	echo 'void destroy (T * '"${1}"')'
-	echo '{'
-	echo '	clean ('"${1}"');'
-	echo '	free ('"${1}"');'
-	echo '}'
-	
-}
-
-function print-struct-clean {
-	
-	echo 'void clean (T * '"${1}"')'
-	echo '{'
-	echo '	'
-	echo '}'
-	
-}
-
-function print-struct-create {
-	
-	echo 'T * create ()'
-	echo '{'
-	echo '	T * '"${1}"' = (T *) malloc (sizeof (T));'
-	echo '	init ('"${1}"');'
-	echo '	return '"${1}"';'
-	echo '}'
-	
-}
-
-function print-struct-init {
-	
-	echo 'void init (T * '"${1}"')'
-	echo '{'
-	echo '	'
-	echo '}'
-	
-}
-
-function print-enum-type {
-	
-	echo 'typedef /* type */ T;'
-	
-}
-
-function get-arg {
-	
-	if test -f 'struct.hpp'
-	then
-		
-		local var=$(cat .module | downcase)
-		
-		echo 'T * '"${var}"
-		
-	fi
-	
-}
-
-function print-function {
-	
-	# I should be able to detect an automatic argument in structure modules
-	
-	echo '/* ret */ '"${1}"' ('"$(get-arg)"')'
-	echo '{'
-	echo '	'
-	echo '}'
-	
-}
-
-function print-const {
-	
-	echo 'const T '"${1}"' = /* value */;'
-	
-}
-
-# Commands
-
-function new-project {
-	
-	mkdir -p "${1}"'/build'
-	mkdir -p "${1}"'/src'
-	mkdir -p "${1}"'/lib'
-	mkdir -p "${1}"'/bin'
-	mkdir -p "${1}"'/inc'
-	mkdir -p "${1}"'/doc'
-	
-	print-project-makefile > "${1}"/build/Makefile
-	
-	print-project-bashrc "${1}" > "${1}"'/bashrc'
-	
-	touch "${1}"'/projrefs'
-	
-	cat > "${1}"'/build/gen-int' <<'EOF'
-#!/bin/bash
-
-COMPILE(common)
-
-COMPILE(gen-common)
-
-COMPILE(format)
-
-COMPILE(gen-int)
-EOF
-	
-	cat > "${1}"'/build/gen-ext' <<'EOF'
-#!/bin/bash
-
-COMPILE(common)
-
-COMPILE(gen-common)
-
-COMPILE(format)
-
-COMPILE(gen-ext)
-EOF
-	
-	cat > "${1}"'/build/clean-hdr' <<'EOF'
-#!/bin/bash
-
-COMPILE(clean-hdr)
-EOF
-	
-	cat > "${1}"'/.clang-format' <<'EOF'
-COMPILE(clang-format)
-EOF
-	
-	chmod +x "${1}"'/build/gen-int' "${1}"'/build/gen-ext' "${1}"'/build/clean-hdr'
-	
-}
-
-function new-module {
-	
-	set-directory-state
-	
-	src-check
-	
-	local downcasename="$(downcase <<< "${1}")"
-	
-	mkdir -p "${downcasename}"
-	echo "${1}" > "${downcasename}"'/.module'
-	
-}
-
-function new-bin {
-	
-	set-directory-state
-	
-	src-check
-	
-	new-module "${1}"
-	
-	local downcasename="$(downcase <<< "${1}")"
-	
-	print-bin-main > "${downcasename}"'/main.hpp'
-	
-	touch "${downcasename}"'/include.hpp'
-	
-	print-bin-makefile "${downcasename}" > "${downcasename}"'/.makefile'
-	
-}
-
-function new-lib {
-	
-	set-directory-state
-
-	src-check
-	
-	new-module "${1}"
-	
-	local downcasename="$(downcase <<< "${1}")"
-	
-	touch "${downcasename}"'/include.hpp'
-	
-	print-lib-makefile "${downcasename}" > "${downcasename}"'/.makefile'
-	
-}
-
-function new-hlib {
-	
-	set-directory-state
-	
-	src-check
-	
-	new-module "${1}"
-	
-	local downcasename="$(downcase <<< "${1}")"
-	
-	touch "${downcasename}"'/include.hpp'
-	
-	print-hlib-makefile "${downcasename}" > "${downcasename}"'/.makefile'
-	
-}
-
-function new-struct {
-	
-	set-directory-state
-	
-	src-check
-	
-	#mod-check
-	
-	local downcasename="$(downcase <<< "${1}")"
-	
-	new-module "${1}"
-	
-	print-struct-struct > "${downcasename}"'/struct.hpp'
-	
-	print-struct-type > "${downcasename}"'/type.hpp'
-	
-	canonicalname="$(sed -e 's~\([a-z]\)\([A-Z]\)~\1_\2~g;s~\([A-Z]\)\([A-Z][^A-Z]\)~\1_\2~g' <<< "${1}" | downcase)"
-	
-	print-struct-destroy "${canonicalname}" > "${downcasename}"'/destroy.hpp'
-	print-struct-clean "${canonicalname}" > "${downcasename}"'/clean.hpp'
-	print-struct-create "${canonicalname}" > "${downcasename}"'/create.hpp'
-	print-struct-init "${canonicalname}" > "${downcasename}"'/init.hpp'
-	
-}
-
-function new-enum {
-	
-	set-directory-state
-	
-	src-check
-	
-	#mod-check
-	
-	local downcasename="$(downcase <<< "${1}")"
-	
-	new-module "${1}"
-	
-	print-enum-type > "${downcasename}"'/type.hpp'
-	
-}
-
-# new-typedef?  Some things only need typedefs.
-
-function new-function {
-	
-	set-directory-state
-	
-	src-check
-	
-	mod-check
-	
-	local downcasename="$(downcase <<< "${1}")"
-	
-	print-function "${1}" > "${downcasename}"'.hpp'
-	
-}
-
-function new-const {
-	
-	set-directory-state
-	
-	src-check
-	
-	mod-check
-	
-	#enum-check
-	
-	local downcasename="$(downcase <<< "${1}")"
-	local upcasename="$(upcase <<< "${1}")"
-	
-	print-const "${upcasename}" > "${downcasename}"'.hpp'
-	
-}
-
-function print-help {
-	
-	echo 'Usage: '"${0}"' [p|new-project | m|new-module | b|new-bin | l|add-lib | h|new-hlib | s|new-struct | e|new-enum | f|new-function | c|new-const] <Name>'
-	
-}
-
-case "${1}" in
-	
-	p|new-project)
-	new-project "${2}"
-	;;
-	m|new-module)
-	new-module "${2}"
-	;;
-	b|new-bin)
-	new-bin "${2}"
-	;;
-	l|new-lib)
-	new-lib "${2}"
-	;;
-	h|new-hlib)
-	new-hlib "${2}"
-	;;
-	s|new-struct)
-	new-struct "${2}"
-	;;
-	e|new-enum)
-	new-enum "${2}"
-	;;
-	f|new-function)
-	new-function "${2}"
-	;;
-	c|new-const)
-	new-const "${2}"
-	;;
-	*)
-	print-help
-	;;
-	
+case "${command}" in
+	(project) ;&
+	(p) create-project "${2}" ;;
+	(binary) ;&
+	(b) create-binary "${2}" ;;
+	(header) ;&
+	(h) create-header "${2}" ;;
+	(constant) ;&
+	(c) create-constant "${2}" "${3}" ;;
+	(function) ;&
+	(f) create-function "${2}" ;;
+	(module) ;&
+	(m) create-module "${2}" ;;
+	(struct) ;&
+	(s) create-struct "${2}" ;;
+	(typedef) ;&
+	(t) create-typedef "${2}" "${3}" ;;
+	(*) print-help
 esac

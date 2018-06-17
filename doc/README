@@ -1,87 +1,44 @@
-# CLIIDE: Command Line Interface Indegrated Development Environment
+# CLIIDE: Command Line Interface Integrated Development Environment
 
 This system consists of a set of scripts that effectively create a CLI IDE 
 environment for C/C++ projects.  It has a number of useful features, not the 
 least of which is generating the makefile system for you, so that building the 
-project is as easy as `make configure && make` in the build directory.
+project is as easy as `make` in the build directory.
 
 Note that, due to the recent rewrite, this documentation is horrendously 
 incomplete.
 
 ## Creating a Project ##
 
-## Adding an Executable ##
+## Adding a Binary Module ##
 
-## Adding a Library ##
-
-## Adding a Header Library ##
+## Adding a Header Module ##
 
 ## Adding a Module ##
 
 ## Adding a Function ##
 
-## Adding a Class ##
+## Adding a Struct ##
+
+## Adding a Typedef ##
+
+## Adding a Constant ##
 
 ## Special Files ##
 
-### .module ###
+### .clang-format ###
 
-The most prevalent metafile, this contains only the case sensitive version of 
-the module name as the only line.  If you want to manually move/rename a module, 
-this file may have to updated to reflect the changes.
+### src/<module>/.makefile ###
 
-### .ignore ###
+This file exists in the toplevel module of a compiled entity.  It contains the 
+makefile hooks and variables specific to that entity.  There are variables 
+defined at the top for configuring inter-module dependencies, and module-local 
+compile and link options.
 
-This file sits in the toplevel module of an executable, library or header 
-library.  This basically tells the build system which header files are not 
-functions.  type.h and struct.h are already treated specially, so they do not 
-need to appear in this file.  This file is created with initial contents. Those 
-contents cannot be removed, or the build system will cease to operate properly.
+### src/<module>/.build ###
 
-### .makefile ###
-
-Also exists in the toplevel module of a compiled entity, this contains the 
-makefile hooks and variables specific to that entity.  If a library needs to be 
-linked to pthread, for example, this is the file to modify.
-
-### bashrc ###
-
-Found at the project root, this file lets you test a library or executable 
-without installing them by sourcing the file in the shell.  You can source this 
-file in your .bashrc file if you want convenient access toy your project.  An 
-environment variable 'PROJ' will be set with the project's root directory.
-
-### projrefs ###
-
-In this file, you simply put paths to other projects, each on their own line, 
-and then you can use their executables, libraries, and header libraries as if 
-they were installed on your system.
-
-## Moving a Project ##
-
-If you simply do an `mv` on a project, it will still work, but references to the 
-project will break, and the bashrc file in the project root will not function 
-properly.  This is easy to fix.  Just use the new-project script as if you were 
-creating the project again, but create it over top of the existing one.  It will 
-overwrite the bashrc file to be correct.  It will also update the Makefile, 
-which may be a concern.
-
-## Removing a File, Module, Class, Etc... ##
+## Removing a File, Module, Struct, Etc... ##
 
 One of the major design considerations in this system was the ability to use 
 `rm` on anything created by the scripts, and not have it break anything.  If you 
 create something and later want to remove it, then you can absolutely use `rm`.
-
-## Exposing a Library Function or Type ##
-
-## Adding a Project Reference ##
-
-It might be useful to use a library from one project in another, and it might be 
-the case that both are actively being developed.  Since it is unwise to install 
-a potentially broken library to the system, a clean way to set up a project 
-reference would be ideal.  To set up such a reference, all you have to do is put 
-the path to the project root on it's own line in the projrefs file in the client 
-project.
-
-Note that circular references are not supported at this time, and if you try to 
-do this, sourcing the bashrc file will result in an infinite loop.

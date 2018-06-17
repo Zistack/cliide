@@ -17,6 +17,7 @@ AlwaysBreakTemplateDeclarations: true
 BinPackArguments: false
 BinPackParameters: false
 BreakBeforeBinaryOperators: None
+# BreakBeforeBraces cannot be changed.
 BreakBeforeBraces: Allman
 BreakBeforeInheritanceComma: false
 BreakBeforeTernaryOperators: false

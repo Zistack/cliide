@@ -1,0 +1,28 @@
+special='
+type.hpp
+struct.hpp
+main.hpp
+include.hpp
+'
+
+function list-source-files
+{
+	find . -mindepth 1 -maxdepth 1 -type f -regex '\./[^.].*\.hpp' |
+		sed -e 's~\./~~' |
+		grep -vxF "${special}"
+}
+
+function list-functions
+{
+	(list-source-files | grep -v '^[0-9][A-Z]*\.hpp$'; list-source-files | grep 'T.hpp') | sort
+}
+
+function list-modules
+{
+	find . -mindepth 1 -maxdepth 1 -type d -regex '^\./[^.].*' | sed -e 's~\./~~'
+}
+
+function list-constants
+{
+	list-source-files | grep '^[0-9A-Z_]*\.hpp$' | grep -v 'T.hpp'
+}
