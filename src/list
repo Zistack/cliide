@@ -14,7 +14,7 @@ function list-source-files
 
 function list-functions
 {
-	(list-source-files | grep -v '^[0-9][A-Z]*\.hpp$'; list-source-files | grep 'T.hpp') | sort
+	grep -L '^const T' $(list-source-files)
 }
 
 function list-modules
@@ -24,5 +24,5 @@ function list-modules
 
 function list-constants
 {
-	list-source-files | grep '^[0-9A-Z_]*\.hpp$' | grep -v 'T.hpp'
+	grep -l '^const T' $(list-source-files)
 }
