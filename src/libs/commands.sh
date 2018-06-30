@@ -1,7 +1,7 @@
-#INCLUDE (struct)
-#INCLUDE (function)
-#INCLUDE (enum)
-#INCLUDE (makefile)
+#INCLUDE (libs/struct.sh)
+#INCLUDE (libs/function.sh)
+#INCLUDE (libs/enum.sh)
+#INCLUDE (libs/makefile.sh)
 
 function create-struct
 {
@@ -69,22 +69,30 @@ function create-project
 	print-project-makefile > "${name}"/build/Makefile
 
 	cat > "${name}"/build/gen-bin.sh <<'EOF'
-#COMPILE (gen-bin.sh)
+#COMPILE (scripts/gen-bin.sh)
 EOF
 	chmod +x "${name}"/build/gen-bin.sh
 
 	cat > "${name}"/build/gen-hdr.sh <<'EOF'
-#COMPILE (gen-hdr.sh)
+#COMPILE (scripts/gen-hdr.sh)
 EOF
 	chmod +x "${name}"/build/gen-hdr.sh
 
 	cat > "${name}"/build/format.sh <<'EOF'
-#COMPILE (format.sh)
+#COMPILE (scripts/format.sh)
 EOF
 	chmod +x "${name}"/build/format.sh
 
 	cat > "${name}"/.clang-format <<'EOF'
-#COMPILE (clang-format)
+#COMPILE (files/clang-format)
+EOF
+
+	cat > "${name}"/inc/.gitignore <<'EOF'
+#COMPILE(files/gitignore)
+EOF
+
+	cat > "${name}"/bin/.gitignore <<'EOF'
+#COMPILE(files/gitignore)
 EOF
 }
 
@@ -96,6 +104,10 @@ function create-binary
 	touch "${name}"/include.hpp
 	print-main > "${name}"/main.hpp
 	print-binary-makefile "${name}" > "${name}"/.makefile
+
+	cat > "${name}"/.build/.gitignore <<'EOF'
+#COMPILE(files/gitignore)
+EOF
 }
 
 function create-header
@@ -105,4 +117,8 @@ function create-header
 	mkdir -p "${name}"/.build
 	touch "${name}"/include.hpp
 	print-header-makefile "${name}" > "${name}"/.makefile
+
+	cat > "${name}"/.build/.gitignore <<'EOF'
+#COMPILE(files/gitignore)
+EOF
 }

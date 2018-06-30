@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#INCLUDE (list)
-#INCLUDE (namespace)
-#INCLUDE (include)
+#INCLUDE (libs/list.sh)
+#INCLUDE (libs/namespace.sh)
+#INCLUDE (libs/include.sh)
 
 srcdir="${1}"
 module="${2}"

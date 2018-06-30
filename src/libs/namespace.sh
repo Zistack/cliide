@@ -1,4 +1,4 @@
-#INCLUDE (list)
+#INCLUDE (libs/list.sh)
 
 function namespace-do
 {
@@ -10,7 +10,7 @@ function namespace-do
 	echo '{'
 
 	cd "${module}"
-	
+
 	for new_module in $(list-modules)
 	do
 		local new_path="${path}"'/'"${new_module}"

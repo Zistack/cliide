@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#INCLUDE (commands)
+#INCLUDE (libs/commands.sh)
 
 command="${1}"
 

@@ -1,4 +1,4 @@
-#INCLUDE (predicates)
+#INCLUDE (libs/predicates.sh)
 
 function print-function
 {

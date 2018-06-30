@@ -1,5 +1,5 @@
-#INCLUDE (predicates)
-#INCLUDE (parse)
+#INCLUDE (libs/predicates.sh)
+#INCLUDE (libs/parse.sh)
 
 function include-struct-type
 {
