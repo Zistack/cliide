@@ -5,7 +5,7 @@ infile="${1}"
 srcdir='../src'
 bindir='../bin'
 
-included_files="${infile}"
+included_files="${infile}\n"
 
 function process-file
 {
