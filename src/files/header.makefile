@@ -42,7 +42,7 @@ $(incdir)/modname/%.hpp : $(modname-path)/%.hpp $(modname-path)/.build/modname.h
 	mkdir -p $(dir $(@))
 	cp $(<) $(@)
 
-$(modname-path)/.build/modname.hpp.gch : $(modname-path)/.build/modname.hpp
+$(modname-path)/.build/modname.hpp.gch : $(modname-path)/.build/modname.hpp $(modname-moddepends)
 	$(CPP) $(CFLAGS) $(modname-CFLAGS) -I $(srcdir) -c -o $(@) $(<)
 
 $(modname-path)/.build/modname.hpp : $(modname-format-files) $(modname-directories)
