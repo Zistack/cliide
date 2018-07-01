@@ -5,7 +5,7 @@ infile="${1}"
 srcdir='../src'
 bindir='../bin'
 
-included_files="${infile}\n"
+included_files="${infile}"$'\n'
 
 function process-file
 {
@@ -17,9 +17,9 @@ function process-file
 		then
 			included_file="$(sed -e 's~^#INCLUDE *(\(.*\))$~\1~' <<< "${line}")"
 
-			if ! grep -q "${included_file}" <<< "${included_files}"
+			if ! grep -qx "${included_file}" <<< "${included_files}"
 			then
-				included_files="${included_files}${included_file}\n"
+				included_files="${included_files}${included_file}"$'\n'
 				process-file "${included_file}"
 			fi
 		elif grep -q '^#COMPILE *(.*)$' <<< "${line}"

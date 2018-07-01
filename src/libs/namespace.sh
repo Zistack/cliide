@@ -18,9 +18,9 @@ function conditionally-process-module
 {
 	local module="${1}"
 
-	if ! grep -q "${module}" <<< "${processed_modules}"
+	if ! grep -qx "${module}" <<< "${processed_modules}"
 	then
-		processed_modules="${processed_modules}${module}\n"
+		processed_modules="${processed_modules}${module}"$'\n'
 
 		process-module "${module}"
 	fi
@@ -47,9 +47,7 @@ function namespace-do
 
 	cd "${module}"
 
-	process-modules | sed -e 's~^~	~'
-
-	"${command}" "${path}"
+	(process-modules; "${command}" "${path}") | sed -e 's~^~	~'
 
 	cd ..
 
