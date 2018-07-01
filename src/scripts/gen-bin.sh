@@ -16,7 +16,7 @@ include-struct-type ''
 echo ''
 for module in $(list-modules)
 do
-	namespace-do "${module}" "${module}" "include-struct-type"
+	namespace-do "${module}" "${module}" "declare-struct"
 done
 
 echo ''

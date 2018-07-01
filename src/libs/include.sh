@@ -1,13 +1,13 @@
 #INCLUDE (libs/predicates.sh)
 #INCLUDE (libs/parse.sh)
 
-function include-struct-type
+function declare-struct
 {
 	local path="${1}"
 
 	if is-struct
 	then
-		echo '#include "'"${path}"'/type.hpp"'
+		get-struct-declaration 'struct.hpp'
 	fi
 }
 
@@ -49,7 +49,7 @@ function declare-functions
 	then
 		for function in $(list-functions)
 		do
-			get-declarations "${function}"
+			get-function-declarations "${function}"
 		done
 	fi
 }

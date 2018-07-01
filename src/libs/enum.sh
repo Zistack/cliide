@@ -2,7 +2,7 @@ function print-typedef
 {
 	local type="${1}"
 
-	echo 'typedef '"${type}"' T;'
+	echo 'using T = '"${type}"';'
 }
 
 function print-constant

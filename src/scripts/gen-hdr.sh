@@ -17,7 +17,7 @@ echo '#include "'"${module}"'/include.hpp"'
 
 echo ''
 
-namespace-do "${module}" "${module}" "include-struct-type"
+namespace-do "${module}" "${module}" "declare-struct"
 
 echo ''
 
