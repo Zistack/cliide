@@ -6,7 +6,7 @@ modname-path = $(srcdir)/modname
 modname-files = $(shell find $(modname-path) -type f -regex '\.\./\([^./][^/]*/\)*[^./][^/]*\.hpp')
 modname-include-files = $(modname-files:$(srcdir)/%=$(incdir)/%)
 modname-install-files = $(modname-files:$(srcdir)/%=/usr/include/%)
-modname-directories = $(shell find $(modname-path) -type f -regex '\.\./\([^./][^/]*/\)*[^./][^/]*')
+modname-directories = $(shell find $(modname-path) -type d -regex '\.\./\([^./][^/]*/\)*[^./][^/]*')
 modname-format-files = $(modname-files:$(srcdir)/%=$(modname-path)/.build/%.format)
 modname-install-moddepends = $(modname-moddepends:%=%-install)
 
@@ -15,11 +15,13 @@ modname : $(incdir)/modname.hpp $(modname-include-files)
 
 .PHONY : modname-clean
 modname-clean :
-	rm -rf $(incdir)/modname.hpp
 	rm -rf $(modname-include-files)
 	rm -rf $(incdir)/modname
+	rm -rf $(incdir)/modname.hpp
 	rm -rf $(modname-format-files)
 	rm -rf $(modname-path)/.build/modname
+	rm -rf $(modname-path)/.build/modname.hpp
+	rm -rf $(modname-path)/.build/modname.hpp.gch
 	rm -rf modname
 
 .PHONY : modname-install
@@ -36,7 +38,7 @@ modname-format : $(modname-format-files)
 $(incdir)/modname.hpp : $(modname-path)/.build/modname.hpp $(modname-path)/.build/modname.hpp.gch
 	cp $(<) $(@)
 
-$(incdir)/%.hpp : $(srcdir)/%.hpp $(modname-path)/.build/modname.hpp.gch
+$(incdir)/modname/%.hpp : $(modname-path)/%.hpp $(modname-path)/.build/modname.hpp.gch
 	mkdir -p $(dir $(@))
 	cp $(<) $(@)
 

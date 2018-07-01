@@ -4,7 +4,7 @@ modname-LFLAGS =
 
 modname-path = $(srcdir)/modname
 modname-files = $(shell find $(modname-path) -type f -regex '\.\./\([^./][^/]*/\)*[^./][^/]*\.hpp')
-modname-directories = $(shell find $(modname-path) -type f -regex '\.\./\([^./][^/]*/\)*[^./][^/]*')
+modname-directories = $(shell find $(modname-path) -type d -regex '\.\./\([^./][^/]*/\)*[^./][^/]*')
 modname-format-files = $(modname-files:$(srcdir)/%=$(modname-path)/.build/%.format)
 modname-install-moddepends = $(modname-moddepends:%=%-install)
 
@@ -14,8 +14,8 @@ modname : $(bindir)/modname
 .PHONY : modname-clean
 modname-clean :
 	rm -rf $(bindir)/modname
-	rm -rf $(modname-path)/.build/main.o
 	rm -rf $(modname-path)/.build/main.cpp
+	rm -rf $(modname-path)/.build/main.o
 	rm -rf $(modname-format-files)
 	rm -rf $(modname-path)/.build/modname
 	rm -rf modname
