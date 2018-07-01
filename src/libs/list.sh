@@ -14,7 +14,12 @@ function list-source-files
 
 function list-functions
 {
-	grep -L '^const T' $(list-source-files)
+	local source_files="$(list-source-files)"
+
+	if [ -n "${source_files}" ]
+	then
+		grep -L '^const T' ${source_files}
+	fi
 }
 
 function list-modules
@@ -24,5 +29,10 @@ function list-modules
 
 function list-constants
 {
-	grep -l '^const T' $(list-source-files)
+	local source_files="$(list-source-files)"
+
+	if [ -n "${source_files}" ]
+	then
+		grep -l '^const T' ${source_files}
+	fi
 }
