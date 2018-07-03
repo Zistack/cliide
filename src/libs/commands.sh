@@ -7,9 +7,7 @@ function create-struct
 {
 	local name="${1}"
 
-	mkdir "${name}"
-
-	print-struct-type > "${name}"/type.hpp
+	mkdir -p "${name}"
 
 	print-struct-definition > "${name}"/struct.hpp
 }
@@ -25,7 +23,7 @@ function create-module
 {
 	local name="${1}"
 
-	mkdir "${name}"
+	mkdir -p "${name}"
 }
 
 function create-typedef
@@ -38,7 +36,7 @@ function create-typedef
 		type='/* type */'
 	fi
 
-	mkdir "${name}"
+	mkdir -p "${name}"
 
 	print-typedef "${type}" > "${name}"/type.hpp
 }
