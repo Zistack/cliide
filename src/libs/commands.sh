@@ -81,6 +81,10 @@ EOF
 EOF
 	chmod +x "${name}"/build/format.sh
 
+	cat > "${name}"/build/.gitignore <<'EOF'
+#COMPILE (files/build.gitignore)
+EOF
+
 	cat > "${name}"/.clang-format <<'EOF'
 #COMPILE (files/clang-format)
 EOF
