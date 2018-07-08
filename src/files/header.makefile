@@ -43,7 +43,7 @@ $(incdir)/modname/%.hpp : $(modname-path)/%.hpp $(modname-path)/.build/modname.h
 	cp $(<) $(@)
 
 $(modname-path)/.build/modname.hpp.gch : $(modname-path)/.build/modname.hpp $(modname-moddepends)
-	$(CPP) $(CFLAGS) $(modname-CFLAGS) -I $(srcdir) -c -o $(@) $(<)
+	$(CPP) -I $(srcdir) $(CFLAGS) $(modname-CFLAGS) -c -o $(@) $(<)
 
 $(modname-path)/.build/modname.hpp : $(modname-format-files) $(modname-directories)
 	./gen-hdr.sh $(srcdir) modname | clang-format > $(@)

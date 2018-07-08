@@ -34,7 +34,7 @@ $(bindir)/modname : $(modname-path)/.build/main.o
 	$(CPP) $(LFLAGS) $(modname-LFLAGS) -o $(@) $(<)
 
 $(modname-path)/.build/main.o : $(modname-path)/.build/main.cpp $(modname-moddepends)
-	$(CPP) $(CFLAGS) $(modname-CFLAGS) -I $(modname-path) -c -o $(@) $(<)
+	$(CPP) -I $(modname-path) $(CFLAGS) $(modname-CFLAGS) -c -o $(@) $(<)
 
 $(modname-path)/.build/main.cpp : $(modname-format-files) $(modname-directories)
 	./gen-bin.sh $(modname-path) | clang-format > $(@)
