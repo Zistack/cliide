@@ -2,6 +2,9 @@ modname-moddepends =
 modname-CFLAGS =
 modname-LFLAGS =
 
+modname-moddepends-CFLAGS = $(foreach mod, $(modname-moddepends), $($(mod)-export-CFLAGS))
+modname-moddepends-LFLAGS = $(foreach mod, $(modname-moddepends), $($(mod)-export-LFLAGS))
+
 modname-path = $(srcdir)/modname
 modname-files = $(shell find $(modname-path) -type f -regex '\.\./\([^./][^/]*/\)*[^./][^/]*\.hpp')
 modname-directories = $(shell find $(modname-path) -type d -regex '\.\./\([^./][^/]*/\)*[^./][^/]*')
@@ -31,10 +34,10 @@ modname-uninstall :
 modname-format : $(modname-format-files)
 
 $(bindir)/modname : $(modname-path)/.build/main.o
-	$(CPP) $(LFLAGS) $(modname-LFLAGS) -o $(@) $(<)
+	$(CPP) $(LFLAGS) $(modname-LFLAGS) $(modname-moddepends-LFLAGS) -o $(@) $(<)
 
 $(modname-path)/.build/main.o : $(modname-path)/.build/main.cpp $(modname-moddepends)
-	$(CPP) -I $(modname-path) $(CFLAGS) $(modname-CFLAGS) -c -o $(@) $(<)
+	$(CPP) -I $(modname-path) $(CFLAGS) $(modname-CFLAGS) $(modname-moddepends-CFLAGS) -c -o $(@) $(<)
 
 $(modname-path)/.build/main.cpp : $(modname-format-files) $(modname-directories)
 	./gen-bin.sh $(modname-path) | clang-format > $(@)
@@ -46,4 +49,3 @@ $(modname-path)/.build/%.format : $(srcdir)/%
 
 /usr/bin/modname : $(bindir)/modname $(modname-install-moddepends)
 	cp $(<) $(@)
-}

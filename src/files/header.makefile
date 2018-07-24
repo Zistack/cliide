@@ -2,6 +2,12 @@ modname-moddepends =
 modname-CFLAGS =
 modname-LFLAGS =
 
+modname-moddepends-CFLAGS = $(foreach mod, $(modname-moddepends), $($(mod)-export-CFLAGS))
+modname-moddepends-LFLAGS = $(foreach mod, $(modname-moddepends), $($(mod)-export-LFLAGS))
+
+modname-export-CFLAGS = $(modname-CFLAGS) $(modname-moddepends-CFLAGS)
+nodname-export-LFLAGS = $(modname-LFLAGS) $(modname-moddepends-LFLAGS)
+
 modname-path = $(srcdir)/modname
 modname-files = $(shell find $(modname-path) -type f -regex '\.\./\([^./][^/]*/\)*[^./][^/]*\.hpp')
 modname-include-files = $(modname-files:$(srcdir)/%=$(incdir)/%)
@@ -43,7 +49,7 @@ $(incdir)/modname/%.hpp : $(modname-path)/%.hpp $(modname-path)/.build/modname.h
 	cp $(<) $(@)
 
 $(modname-path)/.build/modname.hpp.gch : $(modname-path)/.build/modname.hpp $(modname-moddepends)
-	$(CPP) -I $(srcdir) $(CFLAGS) $(modname-CFLAGS) -c -o $(@) $(<)
+	$(CPP) -I $(srcdir) $(CFLAGS) $(modname-CFLAGS) $(modname-moddepends-CFLAGS) -c -o $(@) $(<)
 
 $(modname-path)/.build/modname.hpp : $(modname-format-files) $(modname-directories)
 	./gen-hdr.sh $(srcdir) modname | clang-format > $(@)
