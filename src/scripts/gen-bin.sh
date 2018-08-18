@@ -12,7 +12,7 @@ echo '#include "include.hpp"'
 
 echo ''
 
-include-struct-type ''
+declare-struct '.'
 echo ''
 for module in $(list-modules)
 do
@@ -21,7 +21,7 @@ done
 
 echo ''
 
-include-typedef-type ''
+include-typedef-type '.'
 echo ''
 for module in $(list-modules)
 do
@@ -30,7 +30,7 @@ done
 
 echo ''
 
-include-struct-defintion ''
+include-struct-definition '.'
 echo ''
 for module in $(list-modules)
 do
@@ -39,7 +39,7 @@ done
 
 echo ''
 
-include-constant-definitions ''
+include-constant-definitions '.'
 echo ''
 for module in $(list-modules)
 do
@@ -57,7 +57,7 @@ done
 
 echo ''
 
-include-function-defintiions ''
+include-function-definitions '.'
 echo ''
 for module in $(list-modules)
 do
