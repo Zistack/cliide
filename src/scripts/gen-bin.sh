@@ -61,7 +61,7 @@ include-function-definitions '.'
 echo ''
 for module in $(list-modules)
 do
-	namespace-do "${module}" "${module}" "include-function-defnitions"
+	namespace-do "${module}" "${module}" "include-function-definitions"
 done
 
 echo ''
