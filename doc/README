@@ -5,40 +5,392 @@ environment for C/C++ projects.  It has a number of useful features, not the
 least of which is generating the makefile system for you, so that building the 
 project is as easy as `make` in the build directory.
 
-Note that, due to the recent rewrite, this documentation is horrendously 
-incomplete.
-
 ## Creating a Project ##
 
-## Adding a Binary Module ##
+To create a new project, run
 
-## Adding a Header Module ##
+```
+cliide project <name>
+```
 
-## Adding a Module ##
+in the directory where you want the project directory to be created.  Once 
+you've created a project, it will already be populated with some useful 
+directories.
 
-## Adding a Function ##
+```
+project
+|-- bin
+|-- build
+|   `-- Makefile
+|-- doc
+|-- inc
+|-- ref
+`-- src
+```
 
-## Adding a Struct ##
+ * `bin`
 
-## Adding a Typedef ##
+   This directory will contain the compiled binaries of the project, if any are 
+   produced.
 
-## Adding a Constant ##
+ * `build`
 
-## Special Files ##
+   This directory contains the top-level Makefile for the project.  You will be 
+   running your `make` commands from here.
 
-### .clang-format ###
+ * `doc`
 
-### src/<module>/.makefile ###
+   This directory is a convenient place to stash files for documentation, if 
+   you're into that kind of thing.
 
-This file exists in the toplevel module of a compiled entity.  It contains the 
-makefile hooks and variables specific to that entity.  There are variables 
-defined at the top for configuring inter-module dependencies, and module-local 
-compile and link options.
+ * `inc`
 
-### src/<module>/.build ###
+   This directory will contain the validated header libraries of the project, if 
+   any are produced.
 
-## Removing a File, Module, Struct, Etc... ##
+ * `ref`
+
+   This directory is for project references.  If you have multiple projects 
+   managed by CLIIDE, you can use symlinks to let them refer to each other.  
+   Simply symlink any top-level project directories that are also managed by 
+   CLIIDE into this directory to refer to them as dependencies.  Doing this will 
+   enable you to compile your project without first installing or otherwise 
+   'installing' the dependencies to the system.  There are a number of other 
+   benefits as well, as discussed later.
+
+ * `src`
+
+   This directory is for the meat and potatoes of your project - the source 
+   code.  You'll be spending most of your time in here.
+
+Note that the `bin`, `build`, `inc`, and `ref` directories will also have 
+appropriate .gitignore files in them, saving you time if you use Git as your 
+RCS.
+
+## Adding source code ##
+
+You can't quite add random files and directories to the source tree.  At the 
+very least, the source directories at the top level should be created by CLIIDE.  
+At the moment, two kinds of source modules are supported.
+
+### Adding a Binary Module ###
+
+The first kind is a binary source module.  This source module type compiles down 
+to an executable binary file, found in the `bin` directory of your project.  To 
+create a binary source module, run
+
+```
+cliide binary <name>
+```
+
+inside of the `src` directory.  You'll get a few files created for you.
+
+```
+binary
+|-- .makefile
+|-- include.hpp
+`-- main.hpp
+```
+
+ * `.makefile`
+
+   This is the local makefile for the module.  Most of it you won't want to 
+   touch, but there are a couple of variables at the top that you might want to 
+   configure for this module specifically.  For example, you would want to do 
+   this if you needed your binary to link against a certain library.
+
+ * `include.hpp`
+
+   Present in all module types, this is where you stick any includes of headers 
+   needed for the module.  You don't ever need to use a `#include` directive 
+   within a module to refer to anything else within that module, but you _do_ 
+   need them to refer to things outside of the module, including other modules.
+
+   When including the header files for other modules, use the 
+
+   ```
+   #include <Module.hpp>
+   ```
+
+   notation.
+
+ * `main.hpp`
+
+   It may seem weird to put all of your function implementations in `.hpp` 
+   files, but you'll get used to it.  This is where `main ()` lives.
+
+### Adding a Header Module ###
+
+The second kind of source module is the header source module.  This source 
+module type 'compiles' to a header library, found in the `inc` directory of your 
+project.  To create a header source module, run
+
+```
+cliide header <name>
+```
+
+in the `src` directory.  Like with the binary source module, some files will be 
+created for you.
+
+```
+header
+|-- include.hpp
+`-- .makefile
+```
+
+These files do pretty much the same things as they do in the binary source 
+module, so to avoid redundancy, we won't go over them again.
+
+### Adding a Function ###
+
+You'll probably want to use some functions to keep your code split up into 
+reasonable pieces.  To add files for this purpose, run
+
+```
+cliide function <name>
+```
+
+somewhere inside of a source modules.  Here, `<name>` refers to the name of the 
+function that you want to define, or at least the name you want to associate 
+with the file.
+
+CLIIDE generally encourages a one-function-per-file philosophy, but there's 
+nothing stopping you from putting more than one function in a single file (like 
+all of the overloads of a single name), and you don't even have to restrict them 
+to all having the same name.  The tools won't help you if you violate their 
+philosophy, though, so keep in mind that you'll be doing a bit more work by hand 
+if you decide to go against it.
+
+For bare functions, you'll get two files out.
+
+```
+.
+|-- function.dec.hpp
+`-- function.def.hpp
+```
+
+ * `function.dec.hpp`
+
+   This file is for the function declaration.
+
+ * `function.def.hpp
+
+   this file is for the function definition.
+
+Note that the `.dec.hpp` and `.def.hpp` suffixes are important.  Do not change 
+them.  This goes for the suffixes of all files created by CLIIDE, in general.
+
+Although this command creates two files, neither is required.  If you only need 
+one or the other, feel free to delete the unnecessary file.  To understand 
+exactly when you would want to include the declaration file, see the section on 
+dependencies.
+
+### Adding a Struct ###
+
+This is a tool for C++, so we probably want ~~classes~~ structs.  All types live 
+in their own namespace, and all namespaces map 1-1 to directories.  To create a 
+struct namespace, run
+
+```
+cliide struct <name>
+```
+
+somewhere inside of the `src` directory.  You'll get something like this.
+
+```
+struct
+|-- struct.dec.hpp
+`-- struct.def.hpp
+```
+
+These play roles very similar to those for functions, above.  Also like 
+functions, neither is strictly required, though it seems unlikely that you'd 
+need a struct declaration without a definition behind it.
+
+Note that all types are named `T` here.  The namespace that the type resides in 
+is generally the distinguishing feature.  This might sound insane (and, to be 
+honest, it probably is at least a little), but there are some upsides.  It makes 
+it a bit easier to copy/move code around, because you don't have to update quite 
+as many identifiers.  This goes for scripts and things, too.  It also allows for 
+constants and functions to be associated with a type without having to be static 
+members.  This might seem useless, but it sometimes comes in handy when you are 
+writing template code.
+
+### Adding a Member Function ###
+
+Now that you have ~~classes~~ structs, you'll want to define some member 
+functions.  To do so, run
+
+```
+cliide member <name>
+```
+
+somewhere inside of a source module.  You'll get something like this.
+
+```
+.
+`-- member.def.hpp
+```
+
+Since the declarations are generally handled within the struct definitions, you 
+are only given a file for definitions.
+
+### Adding a Namespace ###
+
+Sometimes you just need to add a namespace to keep things organized.  To do this 
+with CLIIDE, run
+
+```
+cliide namespace <name>
+```
+
+somewhere inside of a source module.  It'll create a namespace directory for 
+you, initially empty.  Incidentally, this happens to be exactly equivalent to a 
+call to `mkdir` with the same name argument.  You're welcome to use whatever is 
+more comfortable.
+
+### Adding a Typedef ###
+
+Sometimes you've got these types that you are using, and their names are just 
+too long or too complicated to be typing out all of the time.  Typedefs to the 
+rescue!  To create a typedef namespace, run
+
+```
+cliide typedef <name>
+```
+
+somewhere inside of the `src` directory.  You'll get something like this.
+
+```
+typedef
+`-- type.def.hpp
+```
+
+The lonesome file therein is where you would specify what type you were aliasing.
+
+### Adding a Constant ###
+
+So you've defined this type, and now you want to define some special values of 
+that type.  This is what the constant feature is for.  To create a constant 
+file, run
+
+```
+cliide constant <name>
+```
+
+somewhere inside of a source module.  You'll get something like this.
+
+```
+.
+`-- CONSTANT.def.hpp
+```
+
+You did use a sane capitalization scheme, right?  Like functions, constants are 
+also generally defined one per file.
+
+### Adding a Static Value ###
+
+Sometimes you need to pass some non-type template arguments to a template, and 
+they need to be static references to something that can't be passed directly.  
+You've got to stick these values _somewhere_.  That is what our so-called 
+'static value' files are for.  They should be created in the same namespace as 
+the template that uses them, unless you want to stick them elsewhere for 
+reasons.  To create a static value file, run
+
+```
+cliide value <name>
+```
+
+somewhere inside of a source module.  You'll get something like this.
+
+```
+.
+`-- VALUE.value.hpp
+```
+
+Put your value in there.
+
+## Moving or Removing source code
 
 One of the major design considerations in this system was the ability to use 
 `rm` on anything created by the scripts, and not have it break anything.  If you 
 create something and later want to remove it, then you can absolutely use `rm`.
+
+Moving and renaming modules works much the same way.  Just use 'mv'.  
+Unfortunately, we don't have a proper refactoring tool yet, so you'll have to 
+update references to that module yourself.
+
+## Stages of Inclusion in a Namespace ##
+
+CLIIDE generates all of the namespace structure and `#include` directives that 
+are needed to get all of your disparate files to act like a coherent codebase.  
+It is important to understand a bit about _how_ it does this, as you will 
+sometimes need to give it a little help.
+
+The inclusion of the files in a namespace is broken up into stages.
+
+ * Children (`children`)
+
+   This stage consists of the namespaces contained within the namespace.
+
+ * Type Declarations (`typedec`)
+
+   This stage consists of the `struct.dec.hpp` file, if it exists.
+
+ * Static Values (`static_values`)
+
+   This stage consists of any `.value.hpp` files, if they exist.
+
+ * Type Definitions (`typedef`)
+
+   This stage consists of the `struct.def.hpp` or `type.def.hpp` file, if either 
+   exists.
+
+ * Declarations (`declarations`)
+
+   This stage consists of any `.dec.hpp` files, if they exist.
+
+ * Definitions (`definitions`)
+
+   This stage consists of any `.def.hpp` files, if they exist.
+
+The files in these stages are always included in this order, within a given 
+module.  Not all stages need to be populated.  It is acceptable for any or all 
+stages to be empty.
+
+## Dependencies Between Modules ##
+
+When a module depends on another, you'll need to include it's top-level header 
+file (generated by the build system) in `include.hpp`.  The build system will 
+automatically generate the proper make dependencies to ensure that the 
+dependency is built before any module that needs it.
+
+## Dependencies Between Namespaces ##
+
+A namespace cannot depend on anything in a parent namespace.  A namespace _can_ 
+depend on things in sibling namespaces.
+
+Sometimes, a stage in one module may require that the files in a specific stage 
+of another module is included first.  This information is given in a `deps` file 
+in the module with the constraint.
+
+Notice that each stage listed comes with a stage identifier.  This is how you 
+will refer to that stage.
+
+To create such a constraint, create a deps file with the following contents
+
+```
+local-stage : Dependency.stage
+```
+
+This says that stage `local-stage` in the current module requires that the 
+stages in module `Dependency` up through `stage` need to be included first.
+
+It is acceptable for a stage to depend on progress in more than one module.  
+Simply add additional `Dependency.stage` entries, separated by commas.  They all 
+must be on the same line, though.
+
+It is also acceptable for more than one stage to have constraints.  Simply add 
+more lines for the other stages.  The stages and their dependencies do not have 
+to be listed in any particular order, though it might be useful to order the 
+stages in stage order, for readability.

@@ -1,0 +1,87 @@
+# Include project references
+
+## Find all project references
+project_name-reference-dirs ::= $(shell \
+	find $(project_name-ref-dir) -mindepth 1 -maxdepth 1 -type l -regex '.*/[^.][^/]*' \
+)
+project_name-references = $(project_name-reference-dirs:$(project_name-ref-dir)/%=%)
+
+## Compute the real directories for these projects
+project_name-reference-real-dirs ::= $(foreach \
+	project_name-reference-dir,$\
+	$(project_name-reference-dirs),$\
+	$(realpath $(project_name-reference-dir))$\
+)
+
+## Filter out the projects that we have already included
+project_name-pending-includes ::= $(filter-out \
+	$(project_name-previously-included),$\
+	$(project_name-reference-real-dirs)$\
+)
+
+## Define our inclusion function
+define project_name-include-reference =
+
+### Set the project's base directory
+$(1)-base-dir ::= $(2)
+
+### Tell the project about what we've already included
+$(1)-previously-included ::= $$(sort \
+	$$(project_name-previously-included)$\
+	$$(project_name-reference-real-dirs)$\
+)
+
+### Include the project's Makefile
+include $$($(1)-base-dir)/build/Makefile
+
+endef
+
+## Call our inclusion function for all projects that still need to be included
+$(foreach \
+	project_name-pending-include,$\
+	$(project_name-pending-includes),$\
+	$(eval \
+		$(call \
+			project_name-include-reference,$\
+			$(notdir $(project_name-pending-include)),$\
+			$(project_name-pending-include)$\
+		)$\
+	)$\
+)
+
+# Compute exported project reference targets
+project_name-reference-export-targets ::= $(sort \
+	$(foreach \
+		project_name-reference,$\
+		$(project_name-references),$\
+		$($(project_name-reference)-export-targets)$\
+	)$\
+)
+
+# Compute project reference include directories
+project_name-reference-inc-dirs ::= $(sort \
+	$(foreach \
+		project_name-reference,$\
+		$(project_name-references),$\
+		$($(project_name-reference)-inc-dir)$\
+	)$\
+)
+
+# Include modules
+
+## Find all modules
+project_name-module-dirs ::= $(shell \
+	find $(project_name-src-dir) -mindepth 1 -maxdepth 1 -type d -regex '.*/[^.][^/]*'$\
+)
+project_name-module-makefiles ::= $(project_name-module-dirs:%=%/.makefile)
+
+## Define modules for toplevel makefile
+project_name-modules ::= $(project_name-module-dirs:$(project_name-src-dir)/%=%)
+
+## Define target exports for modules and referring projects
+project_name-export-targets ::= \
+	$(project_name-modules) \
+	$(project_name-reference-export-targets)
+
+## Include all module makefiles
+include $(project_name-module-makefiles)
