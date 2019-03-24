@@ -13,8 +13,8 @@ module_name-header-files-and-directories ::= \
 		$(module_name-path)/%,$\
 		$(shell \
 			cd $(module_name-path); \
-			find -type f -regex '\(/[^./][^/]*\)*\.hpp' -or \
-				-type d -regex '\(/[^./][^/]*\)*' \
+			find . -mindepth 1 -type f -regex '\.\(/[^./][^/]*\)*\.hpp' -or \
+				-type d -regex '\.\(/[^./][^/]*\)*' \
 		)$\
 	)
 
