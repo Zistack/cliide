@@ -225,6 +225,7 @@ def printHeaderIncludeFile (path, output_stream):
 	header_module_name = path . name
 	header_module = Module (path)
 
+	output_stream . write ('#pragma once\n')
 	output_stream . write ('#include "' + header_module_name + '/include.hpp"\n')
 
 	header_module . printNamespace (
