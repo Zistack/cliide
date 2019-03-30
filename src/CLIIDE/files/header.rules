@@ -1,26 +1,3 @@
-module_name-include-flags ::= -I $(project_name-src-dir) $(module_name-inc-dir-flags)
-
-module_name-top-file ::= $(module_name-path)/.build/module_name.hpp
-module_name-build-file ::= $(module_name-path)/.build/module_name.hpp.gch
-
-module_name-include-file ::= $(project_name-inc-dir)/module_name.hpp
-module_name-include-path ::= $(project_name-inc-dir)/module_name
-module_name-include-files ::= \
-	$(module_name-header-files:$(module_name-path)/%=$(module_name-include-path)/%)
-module_name-include-directories ::= \
-	$(module_name-directories:$(module_name-path)/%=$(module_name-include-path)/%)
-
-module_name-target ::= $(module_name-include-files) $(module_name-include-file)
-
-module_name-install-file ::= $(project_name-header-install-dir)/module_name.hpp
-module_name-install-path ::= $(project_name-header-install-dir)/module_name
-module_name-install-files ::= \
-	$(module_name-header-files:$(module_name-path)/%=$(module_name-install-path)/%)
-module_name-install-directories ::= \
-	$(module_name-directories:$(module_name-path)/%=$(module_name-install-path)/%)
-
-module_name-install-target ::= $(module_name-install-files) $(module_name-install-file)
-
 .PHONY : module_name
 module_name : $(module_name-target)
 

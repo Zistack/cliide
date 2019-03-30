@@ -73,7 +73,8 @@ project_name-reference-inc-dirs ::= $(sort \
 project_name-module-dirs ::= $(shell \
 	find $(project_name-src-dir) -mindepth 1 -maxdepth 1 -type d -regex '.*/[^.][^/]*'$\
 )
-project_name-module-makefiles ::= $(project_name-module-dirs:%=%/.makefile)
+project_name-module-definitions ::= $(project_name-module-dirs:%=%/.definitions)
+project_name-module-rules ::= $(project_name-module-dirs:%=%/.rules)
 
 ## Define modules for toplevel makefile
 project_name-modules ::= $(project_name-module-dirs:$(project_name-src-dir)/%=%)
@@ -83,5 +84,8 @@ project_name-export-targets ::= \
 	$(project_name-modules) \
 	$(project_name-reference-export-targets)
 
-## Include all module makefiles
-include $(project_name-module-makefiles)
+## Include all module definitions
+include $(project_name-module-definitions)
+
+## Include all module rules
+include $(project_name-module-rules)

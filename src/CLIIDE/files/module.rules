@@ -1,0 +1,12 @@
+module_name-dependency-targets ::= $(foreach \
+	module_name-dependency,$\
+	$(module_name-dependencies),$\
+	$($(module_name-dependency)-target)$\
+)
+
+module_name-dependency-install-targets ::= $(foreach \
+	module_name-dependency,$\
+	$(module_name-dependencies),$\
+	$($(module_name-dependency)-install-target)$\
+)
+

@@ -60,45 +60,85 @@ def writeProjectMakefileIncludes (path, project_name):
 
 		printProjectMakefileIncludes (project_name, makefile_includes)
 
-def printHeaderMakefile (project_name, module_name, output_stream):
+def printHeaderDefinitions (project_name, module_name, output_stream):
 
 	filterResource (
-		'files/module.makefile',
+		'files/module.definitions',
 		{'project_name': project_name, 'module_name': module_name},
 		output_stream
 	)
 
 	filterResource (
-		'files/header.makefile',
+		'files/header.definitions',
 		{'project_name': project_name, 'module_name': module_name},
 		output_stream
 	)
 
-def writeHeaderMakefile (path, project_name, module_name):
+def writeHeaderDefinitions (path, project_name, module_name):
 
-	with path . joinpath ('.makefile') . open ('w') as makefile:
+	with path . joinpath ('.definitions') . open ('w') as definitions:
 
-		printHeaderMakefile (project_name, module_name, makefile)
+		printHeaderDefinitions (project_name, module_name, definitions)
 
-def printBinaryMakefile (project_name, module_name, output_stream):
+def printHeaderRules (project_name, module_name, output_stream):
 
 	filterResource (
-		'files/module.makefile',
+		'files/module.rules',
 		{'project_name': project_name, 'module_name': module_name},
 		output_stream
 	)
 
 	filterResource (
-		'files/binary.makefile',
+		'files/header.rules',
 		{'project_name': project_name, 'module_name': module_name},
 		output_stream
 	)
 
-def writeBinaryMakefile (path, project_name, module_name):
+def writeHeaderRules (path, project_name, module_name):
 
-	with path . joinpath ('.makefile') . open ('w') as makefile:
+	with path . joinpath ('.rules') . open ('w') as rules:
 
-		printBinaryMakefile (project_name, module_name, makefile)
+		printHeaderRules (project_name, module_name, rules)
+
+def printBinaryDefinitions (project_name, module_name, output_stream):
+
+	filterResource (
+		'files/module.definitions',
+		{'project_name': project_name, 'module_name': module_name},
+		output_stream
+	)
+
+	filterResource (
+		'files/binary.definitions',
+		{'project_name': project_name, 'module_name': module_name},
+		output_stream
+	)
+
+def writeBinaryDefinitions (path, project_name, module_name):
+
+	with path . joinpath ('.definitions') . open ('w') as definitions:
+
+		printBinaryDefinitions (project_name, module_name, definitions)
+
+def printBinaryRules (project_name, module_name, output_stream):
+
+	filterResource (
+		'files/module.rules',
+		{'project_name': project_name, 'module_name': module_name},
+		output_stream
+	)
+
+	filterResource (
+		'files/binary.rules',
+		{'project_name': project_name, 'module_name': module_name},
+		output_stream
+	)
+
+def writeBinaryRules (path, project_name, module_name):
+
+	with path . joinpath ('.rules') . open ('w') as rules:
+
+		printBinaryRules (project_name, module_name, rules)
 
 def writeMain (path):
 

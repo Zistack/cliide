@@ -48,7 +48,9 @@ def createHeaderLibrary (name):
 	module_path = createDir (Path (), name)
 
 	module_path . joinpath ('include.hpp') . touch ()
-	writeHeaderMakefile (module_path, getProjectNameFromSrcDir (), name)
+	project_name = getProjectNameFromSrcDir ()
+	writeHeaderDefinitions (module_path, project_name, name)
+	writeHeaderRules (module_path, project_name, name)
 
 	build_path = createDir (module_path, '.build')
 	writeGitIgnore (build_path)
@@ -59,7 +61,9 @@ def createBinary (name):
 
 	module_path . joinpath ('include.hpp') . touch ()
 	writeMain (module_path)
-	writeBinaryMakefile (module_path, getProjectNameFromSrcDir (), name)
+	project_name = getProjectNameFromSrcDir ()
+	writeBinaryDefinitions (module_path, project_name, name)
+	writeBinaryRules (module_path, project_name, name)
 
 	build_path = createDir (module_path, '.build')
 	writeGitIgnore (build_path)

@@ -36,8 +36,10 @@ def main ():
 
 	registerPrintProjectMakefile (subparsers)
 	registerPrintProjectMakefileIncludes (subparsers)
-	registerPrintHeaderMakefile (subparsers)
-	registerPrintBinaryMakefile (subparsers)
+	registerPrintHeaderDefinitions (subparsers)
+	registerPrintHeaderRules (subparsers)
+	registerPrintBinaryDefinitions (subparsers)
+	registerPrintBinaryRules (subparsers)
 
 	args = parser . parse_args ()
 	args . function (args)

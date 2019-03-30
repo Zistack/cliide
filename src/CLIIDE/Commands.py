@@ -228,11 +228,11 @@ def printProjectMakefileIncludes (args):
 
 	Resource . printProjectMakefileIncludes (args . project_name, stdout)
 
-def registerPrintHeaderMakefile (subparsers):
+def registerPrintHeaderDefinitions (subparsers):
 
 	parser = subparsers . add_parser (
-		'header-makefile',
-		description = "Prints a header library .makefile to standard output."
+		'header-definitions',
+		description = "Prints a header library .definitions to standard output."
 	)
 	parser . add_argument (
 		'project_name',
@@ -244,21 +244,47 @@ def registerPrintHeaderMakefile (subparsers):
 		type = str,
 		help = 'The name of the header library.'
 	)
-	parser . set_defaults (function = printHeaderMakefile)
+	parser . set_defaults (function = printHeaderDefinitions)
 
-def printHeaderMakefile (args):
+def printHeaderDefinitions (args):
 
-	Resource . printHeaderMakefile (
+	Resource . printHeaderDefinitions (
 		args . project_name,
 		args . module_name,
 		stdout
 	)
 
-def registerPrintBinaryMakefile (subparsers):
+def registerPrintHeaderRules (subparsers):
 
 	parser = subparsers . add_parser (
-		'binary-makefile',
-		description = "Prints a binary .makefile to standard output."
+		'header-rules',
+		description = "Prints a header library .rules to standard output."
+	)
+	parser . add_argument (
+		'project_name',
+		type = str,
+		help = 'The name of the project.'
+	)
+	parser . add_argument (
+		'module_name',
+		type = str,
+		help = 'The name of the header library.'
+	)
+	parser . set_defaults (function = printHeaderRules)
+
+def printHeaderRules (args):
+
+	Resource . printHeaderRules (
+		args . project_name,
+		args . module_name,
+		stdout
+	)
+
+def registerPrintBinaryDefinitions (subparsers):
+
+	parser = subparsers . add_parser (
+		'binary-definitions',
+		description = "Prints a binary .definitions to standard output."
 	)
 	parser . add_argument (
 		'project_name',
@@ -270,11 +296,37 @@ def registerPrintBinaryMakefile (subparsers):
 		type = str,
 		help = 'The name of the binary.'
 	)
-	parser . set_defaults (function = printBinaryMakefile)
+	parser . set_defaults (function = printBinaryDefinitions)
 
-def printBinaryMakefile (args):
+def printBinaryDefinitions (args):
 
-	Resource . printBinaryMakefile (
+	Resource . printBinaryDefinitions (
+		args . project_name,
+		args . module_name,
+		stdout
+	)
+
+def registerPrintBinaryRules (subparsers):
+
+	parser = subparsers . add_parser (
+		'binary-rules',
+		description = "Prints a binary .rules to standard output."
+	)
+	parser . add_argument (
+		'project_name',
+		type = str,
+		help = 'The name of the project.'
+	)
+	parser . add_argument (
+		'module_name',
+		type = str,
+		help = 'The name of the binary.'
+	)
+	parser . set_defaults (function = printBinaryRules)
+
+def printBinaryRules (args):
+
+	Resource . printBinaryRules (
 		args . project_name,
 		args . module_name,
 		stdout
