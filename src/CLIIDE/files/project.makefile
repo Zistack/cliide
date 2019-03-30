@@ -27,8 +27,8 @@ else
 	project_name-target-prefix ::= project_name-
 endif
 
-project_name-inc-dir ::= $(project_name-base-dir)/inc
 project_name-src-dir ::= $(project_name-base-dir)/src
+project_name-inc-dir ::= $(project_name-base-dir)/inc
 project_name-bin-dir ::= $(project_name-base-dir)/bin
 project_name-ref-dir ::= $(project_name-base-dir)/ref
 project_name-build-dir ::= $(project_name-base-dir)/build
@@ -46,6 +46,8 @@ $(project_name-target-prefix)all : $(project_name-modules)
 
 .PHONY : clean
 $(project_name-target-prefix)clean : $(project_name-module-cleans)
+	rm -rf $(project_name-inc-dir)/*
+	rm -rf $(project_name-bin-dir)/*
 
 .PHONE : install
 $(project_name-target-prefix)install : $(project_name-module-installs)

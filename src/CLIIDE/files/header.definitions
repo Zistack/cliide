@@ -6,9 +6,9 @@ module_name-build-file ::= $(module_name-path)/.build/module_name.hpp.gch
 module_name-include-file ::= $(project_name-inc-dir)/module_name.hpp
 module_name-include-path ::= $(project_name-inc-dir)/module_name
 module_name-include-files ::= \
-	$(module_name-header-files:$(module_name-path)/%=$(module_name-include-path)/%)
+	$(module_name-header-files:$(project_name-src-dir)/%=$(project_name-inc-dir)/%)
 module_name-include-directories ::= \
-	$(module_name-directories:$(module_name-path)/%=$(module_name-include-path)/%)
+	$(module_name-directories:$(project_name-src-dir)/%=$(project_name-inc-dir)/%)
 
 module_name-target ::= $(module_name-include-files) $(module_name-include-file)
 

@@ -10,10 +10,10 @@ module_name-path ::= $(project_name-src-dir)/module_name
 module_name-header-files-and-directories ::= \
 	$(patsubst \
 		./%,$\
-		$(module_name-path)/%,$\
+		$(project_name-src-dir)/%,$\
 		$(shell \
-			cd $(module_name-path); \
-			find . -mindepth 1 -type f -regex '\.\(/[^./][^/]*\)*\.hpp' -or \
+			cd $(project_name-src-dir); \
+			find ./module_name -type f -regex '\.\(/[^./][^/]*\)*\.hpp' -or \
 				-type d -regex '\.\(/[^./][^/]*\)*' \
 		)$\
 	)
