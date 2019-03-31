@@ -333,13 +333,13 @@ The inclusion of the files in a namespace is broken up into stages.
 
    This stage consists of the namespaces contained within the namespace.
 
- * Type Declarations (`typedec`)
-
-   This stage consists of the `struct.dec.hpp` file, if it exists.
-
  * Static Values (`static_values`)
 
    This stage consists of any `.value.hpp` files, if they exist.
+
+ * Type Declarations (`typedec`)
+
+   This stage consists of the `struct.dec.hpp` file, if it exists.
 
  * Type Definitions (`typedef`)
 
