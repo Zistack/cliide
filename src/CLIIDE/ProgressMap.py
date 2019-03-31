@@ -17,6 +17,10 @@ class ProgressMap:
 
 				this . map [module_name] = Stage [stage_name]
 
+	def __repr__ (this):
+
+		return this . map . __repr__ ();
+
 	def update (this, module_name, stage):
 
 		this . map [module_name] = stage
