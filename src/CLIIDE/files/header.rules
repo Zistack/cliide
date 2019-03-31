@@ -18,7 +18,7 @@ module_name-uninstall :
 	rm -rf $(module_name-install-files)
 	rm -rf $(module_name-install-directories)
 
-$(module_name-top-file) : $(module_name-header-files) $(module_name-directories)
+$(module_name-top-file) : $(module_name-deps-files) $(module_name-directories)
 	cliide header-include-file $(module_name-path) > $(@)
 
 $(module_name-build-file) : $(module_name-top-file) $(module_name-header-files) $(module_name-dependency-targets)

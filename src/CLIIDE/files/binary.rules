@@ -14,10 +14,10 @@ module_name-install : $(module_name-install-target)
 module_name-uninstall :
 	rm -rf $(module_name-install-file)
 
-$(module_name-top-file) : $(module_name-header-files) $(module_name-directories)
+$(module_name-top-file) : $(module_name-deps-files) $(module_name-directories)
 	cliide binary-include-file $(module_name-path) > $(@)
 
-$(module_name-build-file) : $(module_name-top-file) $(module_name-dependency-targets)
+$(module_name-build-file) : $(module_name-top-file) $(module_name-header-files) $(module_name-dependency-targets)
 	$(project_name-CPP) $(module_name-include-flags) $(project_name-CFLAGS) $(module_name-CFLAGS) -c -o $(@) $(<)
 
 $(module_name-bin-file) : $(module_name-build-file)

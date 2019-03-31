@@ -7,19 +7,24 @@ module_name-LFLAGS ::=
 
 module_name-path ::= $(project_name-src-dir)/module_name
 
-module_name-header-files-and-directories ::= \
+module_name-files-and-directories ::= \
 	$(patsubst \
 		./%,$\
 		$(project_name-src-dir)/%,$\
 		$(shell \
 			cd $(project_name-src-dir); \
 			find ./module_name -type f -regex '\.\(/[^./][^/]*\)*\.hpp' -or \
-				-type d -regex '\.\(/[^./][^/]*\)*' \
+				-type d -regex '\.\(/[^./][^/]*\)*' -or \
+				-type f -name 'deps' \
 		)$\
 	)
 
-module_name-header-files ::= $(filter %.hpp, $(module_name-header-files-and-directories))
-module_name-directories ::= $(filter-out %.hpp, $(module_name-header-files-and-directories))
+module_name-header-files ::= \
+	$(filter %.hpp, $(module_name-files-and-directories))
+module_name-deps-files ::= \
+	$(filter %/deps, $(module_name-files-and-directories))
+module_name-directories ::= \
+	$(filter-out %.hpp %/deps, $(module_name-files-and-directories))
 
 module_name-dependency-candidates ::= \
 	$(shell sed -ne 's~\#include *<\(.*\)\.hpp>.*~\1~p' $(module_name-path)/include.hpp)
