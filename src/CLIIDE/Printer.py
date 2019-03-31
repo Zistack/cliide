@@ -38,4 +38,4 @@ class Printer:
 
 			progress_map . update (this . module_name, this . next_stage)
 
-			this . next_stage += 1
+			this . next_stage = Stage (this . next_stage + 1)
