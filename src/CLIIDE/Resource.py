@@ -178,7 +178,7 @@ def printStaticValue (name, output_stream):
 
 def writeStaticValue (name):
 
-	with open (name + '.static.hpp', 'w') as static_value:
+	with open (name + '.value.hpp', 'w') as static_value:
 
 		printStaticValue (name, static_value)
 
