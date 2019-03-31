@@ -179,7 +179,7 @@ class Module:
 
 		for static_value in this . static_values:
 
-			printInclude (module_path, constant, output_stream)
+			printInclude (module_path, static_value, output_stream)
 
 	def printTypeDef (this, module_path, output_stream):
 
