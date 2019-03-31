@@ -9,8 +9,8 @@ class Module:
 
 	def __init__(this, path):
 		this . children = dict ()
-		this . typedec = ''
 		this . static_values = set ()
+		this . typedec = ''
 		this . typedef = ''
 		this . declarations = set ()
 		this . definitions = set ()
@@ -92,8 +92,8 @@ class Module:
 
 		return not (
 			this . children or
-			this . typedec or
 			this . static_values or
+			this . typedec or
 			this . typedef or
 			this . declarations or
 			this . definitions
@@ -104,11 +104,11 @@ class Module:
 		if (this . children):
 			return Stage ['children']
 
-		if (this . typedec):
-			return Stage ['typedec']
-
 		if (this . static_values):
 			return Stage ['static_values']
+
+		if (this . typedec):
+			return Stage ['typedec']
 
 		if (this . typedef):
 			return Stage ['typedef']
@@ -128,8 +128,8 @@ class Module:
 	def printStages (this, module_path, output_stream):
 
 		this . printChildren (module_path, output_stream)
-		this . printTypeDec (module_path, output_stream)
 		this . printStaticValues (module_path, output_stream)
+		this . printTypeDec (module_path, output_stream)
 		this . printTypeDef (module_path, output_stream)
 		this . printDeclarations (module_path, output_stream)
 		this . printDefinitions (module_path, output_stream)
@@ -169,17 +169,17 @@ class Module:
 
 	# printChildren
 
-	def printTypeDec (this, module_path, output_stream):
-
-		if (this . typedec):
-
-			printInclude (module_path, this . typedec, output_stream)
-
 	def printStaticValues (this, module_path, output_stream):
 
 		for static_value in this . static_values:
 
 			printInclude (module_path, static_value, output_stream)
+
+	def printTypeDec (this, module_path, output_stream):
+
+		if (this . typedec):
+
+			printInclude (module_path, this . typedec, output_stream)
 
 	def printTypeDef (this, module_path, output_stream):
 
@@ -201,8 +201,8 @@ class Module:
 
 	stage_table = {
 		Stage ['children'] : printChildren,
-		Stage ['typedec'] : printTypeDec,
 		Stage ['static_values'] : printStaticValues,
+		Stage ['typedec'] : printTypeDec,
 		Stage ['typedef'] : printTypeDef,
 		Stage ['declarations'] : printDeclarations,
 		Stage ['definitions'] : printDefinitions
