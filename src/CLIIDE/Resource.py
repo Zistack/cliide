@@ -150,8 +150,8 @@ def writeMain (path):
 def writeStructDeclaration (path):
 
 	copy (
-		resource_filename ('CLIIDE', 'files/struct.decl.hpp'),
-		str (path . joinpath ('struct.decl.hpp'))
+		resource_filename ('CLIIDE', 'files/struct.dec.hpp'),
+		str (path . joinpath ('struct.dec.hpp'))
 	)
 
 def writeStructDefinition (path):
