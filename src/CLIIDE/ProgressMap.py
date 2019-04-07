@@ -1,4 +1,5 @@
-from CLIIDE.Stage import Stage
+from CLIIDE . Stage import Stage
+import sys
 
 class ProgressMap:
 
@@ -20,6 +21,26 @@ class ProgressMap:
 	def __repr__ (this):
 
 		return this . map . __repr__ ();
+
+	def validate (this, existing_modules, module_path):
+
+		for module_name in this . map . keys ():
+
+			if (module_name not in existing_modules):
+
+				print (
+					"Module '" + module_name + "' does not exist",
+					file = sys . stderr
+				)
+				print (
+					"Note: '" +
+						module_name +
+						"' is referenced by " +
+						str (module_path . joinpath ('deps')),
+					file = sys . stderr
+				)
+
+				sys . exit (1);
 
 	def update (this, module_name, stage):
 

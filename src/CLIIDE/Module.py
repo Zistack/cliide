@@ -1,9 +1,10 @@
 from collections import defaultdict, deque
-from pathlib import Path, PurePath
+from pathlib import PurePath
+import sys
 
-from CLIIDE.Printer import Printer
-from CLIIDE.ProgressMap import ProgressMap
-from CLIIDE.Stage import Stage
+from CLIIDE . Printer import Printer
+from CLIIDE . ProgressMap import ProgressMap
+from CLIIDE . Stage import Stage
 
 class Module:
 
@@ -17,7 +18,7 @@ class Module:
 
 		this . dependencies = defaultdict (ProgressMap)
 
-		for child in path.iterdir ():
+		for child in path . iterdir ():
 
 			if (child . name . startswith ('.')):
 				continue;
@@ -86,7 +87,113 @@ class Module:
 
 		# for
 
+		this . validate (path)
+
 	# __init__
+
+	def traverseDependencies (this, check_action = None, pre_action = None, post_action = None):
+
+		visited_stages = set ()
+
+		def visit (child_name, stage):
+
+			if (check_action):
+
+				check_action (child_name, stage)
+
+			if (child_name, stage) in visited_stages:
+
+				return
+
+			visited_stages . add ((child_name, stage))
+
+			if (pre_action):
+
+				pre_action (child_name, stage)
+
+			if (stage - 1):
+
+				previous_stage = Stage (stage - 1)
+				visit (child_name, previous_stage)
+
+			sibling_dependencies = \
+				this . \
+				children [child_name] . \
+				dependencies [stage] . \
+				map . \
+				items ()
+
+			for sibling_name, sibling_stage in sibling_dependencies:
+
+				visit (sibling_name, sibling_stage)
+
+			if (post_action):
+
+				post_action (child_name, stage)
+
+		for child_name in this . children . keys ():
+
+			for stage in reversed (Stage):
+
+				visit (child_name, stage)
+
+	def validate (this, path):
+
+		for child_name, child in this . children . items ():
+
+			for progress_requirements in child . dependencies . values ():
+
+				progress_requirements . validate (
+					this . children,
+					path . joinpath (child_name)
+				)
+
+		path_stages = list ()
+
+		def check_action (child_name, stage):
+
+			if (child_name, stage) in path_stages:
+
+				cycle_stages = path_stages [
+					path_stages . index ((child_name, stage)):
+				]
+
+				print ('Found dependency cycle:', file = sys . stderr)
+				print (file = sys . stderr)
+
+				for (path_child_name, path_stage) in cycle_stages:
+
+					print (
+						'\t' +
+							path_child_name +
+							'.' +
+							path_stage . name +
+							' ->',
+						file = sys . stderr
+					)
+
+				print (
+					'\t' + child_name + '.' + stage . name,
+					file = sys . stderr
+				)
+
+				print (file = sys . stderr)
+				print (
+					'Note: found cycle in ' + str (path),
+					file = sys . stderr
+				)
+
+				sys . exit (1)
+
+		def pre_action (child_name, stage):
+
+			path_stages . append ((child_name, stage))
+
+		def post_action (child_name, stage):
+
+			path_stages . pop ()
+
+		this . traverseDependencies (check_action, pre_action, post_action)
 
 	def isEmpty (this):
 
