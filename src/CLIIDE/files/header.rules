@@ -18,6 +18,7 @@ module_name-uninstall :
 	rm -rf $(module_name-install-files)
 	rm -rf $(module_name-install-directories)
 
+.DELETE_ON_ERROR : $(module_name-top-file)
 $(module_name-top-file) : $(module_name-deps-files) $(module_name-directories)
 	cliide header-include-file $(module_name-path) > $(@)
 
