@@ -6,6 +6,9 @@ from CLIIDE . Printer import Printer
 from CLIIDE . ProgressMap import ProgressMap
 from CLIIDE . Stage import Stage
 
+import CLIIDE . Rule as Rule
+import CLIIDE . IO as IO
+
 class Module:
 
 	def __init__(this, path):
@@ -65,17 +68,28 @@ class Module:
 
 					with child . open () as depfile:
 
-						for line in depfile:
+						try:
 
-							if line == '':
-								continue
+							this . dependencies = Rule . getModuleDependencies (
+								IO . InputStream (depfile)
+							)
 
-							stage, _, dependencies = line . partition (':')
+						except SyntaxError as e:
 
-							stage = stage . strip ()
+							print (
+								'Failed to parse deps file:',
+								file = sys . stderr
+							)
+							print (file = sys . stderr)
 
-							this . dependencies [Stage [stage]] = \
-								ProgressMap (dependencies)
+							print ('\t' + str (e), file = sys . stderr)
+
+							print (file = sys . stderr)
+							print (
+								'Note: broken deps file in ' + str (path),
+								file = sys . stderr
+							)
+							sys . exit (1)
 
 						#for
 
