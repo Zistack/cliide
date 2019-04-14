@@ -1,4 +1,4 @@
-from CLIIDE.Stage import Stage
+from CLIIDE . Stage import Stage
 
 class Printer:
 
@@ -18,7 +18,9 @@ class Printer:
 
 			return False
 
-		return progress_map . satisfies (this . module . dependencies [this . next_stage])
+		return progress_map . satisfies (
+			this . module . dependencies [this . next_stage]
+		)
 
 	def printNamespace (this, progress_map, output_stream):
 
@@ -34,7 +36,11 @@ class Printer:
 
 		while (this . canMakeProgress (progress_map)):
 
-			this . module . printStage (this . next_stage, this . module_path, output_stream)
+			this . module . printStage (
+				this . next_stage,
+				this . module_path,
+				output_stream
+			)
 
 			progress_map . update (this . module_name, this . next_stage)
 
