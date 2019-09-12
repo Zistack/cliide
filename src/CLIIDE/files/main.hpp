@@ -1,4 +1,4 @@
-int main (int argv, char ** argc)
+int main (int argc, char ** argv)
 {
 	/* code */
 }
